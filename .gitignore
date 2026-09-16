@@ -1,4 +1,33 @@
-.idea/
+# Dependencies
 node_modules/
+
+# Build
 dist/
+build/
+.cache/
+*.local
+
+# Environment
 .env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Test / coverage (later stories)
+coverage/
+.nyc_output/
+
+# Bundler
+.parcel-cache/
+.vite/
