@@ -1,3 +1,4 @@
+import { Header } from '../components/header/header';
 import { HomePage } from '../pages/home/home-page';
 import type { Page } from '../types/page';
 
@@ -19,8 +20,7 @@ export class App {
     const app = document.createElement('div');
     app.className = 'app';
 
-    const header = document.createElement('header');
-    header.className = 'header';
+    const header = new Header().render();
 
     const main = document.createElement('main');
     main.className = 'content';
