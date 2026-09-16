@@ -1,6 +1,21 @@
 @use './variables' as *;
+@use './breakpoints' as *;
 
 @mixin container {
-  width: min(100% - 32px, $container-max-width);
+  width: min(100% - $spacing-lg, $container-max-width);
   margin-inline: auto;
+}
+
+@mixin hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @content;
+    }
+  }
+}
+
+@mixin tablet-down {
+  @media (max-width: $breakpoint-tablet) {
+    @content;
+  }
 }

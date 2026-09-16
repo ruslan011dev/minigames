@@ -3,11 +3,15 @@ $color-surface: #151515;
 $color-text: #ffffff;
 $color-text-secondary: #a0a0a0;
 $color-accent: #d6ff3f;
+$color-accent-hover: #c5ee2a;
+$color-accent-active: #b5dc16;
 
 $font-main: 'Manrope', sans-serif;
 $font-mono: 'DM Mono', monospace;
 
 $container-max-width: 1200px;
+$header-height: 72px;
+$header-height-mobile: 56px;
 
 $spacing-xs: 4px;
 $spacing-sm: 8px;
@@ -18,3 +22,7 @@ $spacing-2xl: 48px;
 
 $radius-sm: 4px;
 $radius-md: 8px;
+
+$transition-fast: 0.2s ease;
+
+$z-header: 100;
