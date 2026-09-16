@@ -21,9 +21,9 @@ Story 1: project setup, Home page layout, Auth dialog layout.
 ```bash
 git clone <repository-url>
 cd minigames
+npm install
+npm run dev
 ```
-
-Install and run scripts will be added with the bundler and lint tooling.
 
 ## Project structure
 
@@ -40,7 +40,11 @@ public/          # static files (favicon, etc.)
 
 ## Scripts
 
-Not configured yet. They will appear after the development environment is set up.
+- `npm run dev` — start local server
+- `npm run build` — production build
+- `npm run preview` — preview production build
+- `npm run lint` — eslint
+- `npm run format` — prettier
 
 ## Deployment
 

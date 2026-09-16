@@ -1,7 +1,11 @@
 import './style.scss';
+import { App } from './app/app';
 
-const app = document.querySelector<HTMLDivElement>('#app');
+const root = document.querySelector<HTMLElement>('#app');
 
-if (app) {
-  app.innerHTML = '<h1>MiniGames</h1>';
+if (!root) {
+  throw new Error('Root element #app was not found');
 }
+
+const app = new App(root);
+app.start();

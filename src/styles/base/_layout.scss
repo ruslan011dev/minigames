@@ -1,0 +1,17 @@
+@use '../variables' as *;
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: $color-bg;
+  color: $color-text;
+}
+
+.content {
+  flex: 1 1 auto;
+}
+
+.page {
+  width: 100%;
+}
