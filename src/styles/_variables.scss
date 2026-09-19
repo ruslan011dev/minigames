@@ -8,10 +8,16 @@ $color-white: #ffffff;
 
 $font-main: 'Inter', sans-serif;
 
+$font-size-display: 56px;
+$font-size-display-tablet: 32px;
+$font-size-display-mobile: 28px;
+$font-size-body: 18px;
+$font-size-body-sm: 16px;
 $font-size-logo: 24px;
 $font-size-logo-tablet: 20px;
 $font-size-nav: 16px;
 $font-size-label: 14px;
+$font-size-menu: 18px;
 
 $font-weight-medium: 500;
 $font-weight-bold: 700;
@@ -39,7 +45,11 @@ $spacing-3xl: 48px;
 $btn-padding-x: 20px;
 $btn-padding-y: 10px;
 
+$btn-large-x: 24px;
+$btn-large-y: 16px;
+
 $radius-sm: 8px;
+$radius-xl: 24px;
 
 $border-width: 2px;
 
@@ -50,4 +60,12 @@ $z-menu: 200;
 
 $menu-width: 320px;
 $color-overlay: rgba(36, 33, 69, 0.4);
-$font-size-menu: 18px;
+$hero-height-desktop: 627px;
+$hero-height-tablet: 383px;
+$hero-height-mobile: 331px;
+$hero-offset-desktop: 120px;
+$hero-card-max: 540px;
+$hero-fill: #9a91b3;
+$hero-overlay: rgba(95, 93, 117, 0.45);
+$hero-media-grayscale: 0.35;
+$hero-media-saturate: 0.55;

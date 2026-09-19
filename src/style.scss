@@ -2,6 +2,7 @@
 @use './styles/mixins' as *;
 @use './styles/base/layout';
 @use './components/header/header';
+@use './pages/home/hero';
 
 * {
   box-sizing: border-box;
