@@ -1,28 +1,53 @@
-$color-bg: #0b0b0b;
-$color-surface: #151515;
-$color-text: #ffffff;
-$color-text-secondary: #a0a0a0;
-$color-accent: #d6ff3f;
-$color-accent-hover: #c5ee2a;
-$color-accent-active: #b5dc16;
+$color-bg: #f9f8f3;
+$color-on-primary: #242145;
+$color-on-bg: #5f5d75;
+$color-primary: #ffd02b;
+$color-primary-hover: #f5c51f;
+$color-primary-active: #e8b816;
+$color-white: #ffffff;
 
-$font-main: 'Manrope', sans-serif;
-$font-mono: 'DM Mono', monospace;
+$font-main: 'Inter', sans-serif;
 
-$container-max-width: 1200px;
-$header-height: 72px;
-$header-height-mobile: 56px;
+$font-size-logo: 24px;
+$font-size-logo-tablet: 20px;
+$font-size-nav: 16px;
+$font-size-label: 14px;
+
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+$page-max-width: 1920px;
+
+$offset-desktop: 80px;
+$offset-tablet: 40px;
+$offset-mobile: 16px;
+
+$header-height-desktop: 85px;
+$header-height-tablet: 72px;
+$header-height-mobile: 64px;
+
+$icon-size: 32px;
 
 $spacing-xs: 4px;
 $spacing-sm: 8px;
 $spacing-md: 16px;
 $spacing-lg: 24px;
 $spacing-xl: 32px;
-$spacing-2xl: 48px;
+$spacing-2xl: 40px;
+$spacing-3xl: 48px;
 
-$radius-sm: 4px;
-$radius-md: 8px;
+$btn-padding-x: 20px;
+$btn-padding-y: 10px;
+
+$radius-sm: 8px;
+
+$border-width: 2px;
 
 $transition-fast: 0.2s ease;
 
 $z-header: 100;
+$z-menu: 200;
+
+$menu-width: 320px;
+$color-overlay: rgba(36, 33, 69, 0.4);
+$font-size-menu: 18px;
