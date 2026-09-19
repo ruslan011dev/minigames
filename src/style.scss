@@ -14,8 +14,12 @@ html {
 body {
   margin: 0;
   background: $color-bg;
-  color: $color-text;
+  color: $color-on-primary;
   font-family: $font-main;
+}
+
+body.is-menu-open {
+  overflow: hidden;
 }
 
 .container {

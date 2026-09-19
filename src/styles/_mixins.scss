@@ -2,8 +2,17 @@
 @use './breakpoints' as *;
 
 @mixin container {
-  width: min(100% - $spacing-lg, $container-max-width);
+  width: 100%;
   margin-inline: auto;
+  padding-inline: $offset-mobile;
+
+  @media (min-width: $breakpoint-mobile + 1px) {
+    padding-inline: $offset-tablet;
+  }
+
+  @media (min-width: $breakpoint-tablet + 1px) {
+    padding-inline: $offset-desktop;
+  }
 }
 
 @mixin hover {
@@ -16,6 +25,18 @@
 
 @mixin tablet-down {
   @media (max-width: $breakpoint-tablet) {
+    @content;
+  }
+}
+
+@mixin mobile-down {
+  @media (max-width: $breakpoint-mobile) {
+    @content;
+  }
+}
+
+@mixin desktop-up {
+  @media (min-width: $breakpoint-tablet + 1px) {
     @content;
   }
 }
