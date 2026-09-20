@@ -3,32 +3,17 @@
 @use '../../styles/breakpoints' as *;
 
 .leaderboard {
-  padding-top: 16px;
-  padding-bottom: 16px;
+  padding-block: clamp(16px, 3vw, 40px);
+  padding-inline: clamp(16px, 6.25vw, 120px);
+  overflow-x: auto;
   background-color: $color-bg;
-
-  @media (min-width: $breakpoint-mobile + 1px) {
-    padding-top: 24px;
-    padding-bottom: 24px;
-  }
-
-  @include desktop-up {
-    padding-top: 40px;
-    padding-bottom: 40px;
-  }
 }
 
 .leaderboard__header {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 16px;
-  @include container;
-
-  @include desktop-up {
-    margin-bottom: 40px;
-    padding-inline: $section-offset-desktop;
-  }
+  margin-bottom: clamp(16px, 3vw, 40px);
 }
 
 .leaderboard__accent {
@@ -47,39 +32,26 @@
 .leaderboard__title {
   margin: 0;
   color: $color-on-primary;
-  font-size: $font-size-section-tablet;
+  font-size: clamp(24px, 2vw, 32px);
   font-weight: $font-weight-bold;
   line-height: 1.2;
-
-  @include desktop-up {
-    font-size: $font-size-section;
-  }
 }
 
 .leaderboard__table {
-  width: calc(100% - 32px);
-  margin-inline: $offset-mobile;
+  width: 100%;
+  min-width: 0;
+  table-layout: auto;
   border-collapse: separate;
   border-spacing: 0;
   background-color: $color-bg;
   border: 2px solid $color-on-primary;
   border-radius: 16px;
 
-  @media (min-width: $breakpoint-mobile + 1px) {
-    width: calc(100% - 80px);
-    margin-inline: $offset-tablet;
-  }
-
-  @include desktop-up {
-    width: calc(100% - #{$section-offset-desktop * 2});
-    margin-inline: $section-offset-desktop;
-  }
-
   th,
   td {
-    padding: 16px 8px;
+    padding: clamp(12px, 1.4vw, 24px) clamp(8px, 1vw, 16px);
     color: $color-on-primary;
-    font-size: $font-size-label;
+    font-size: clamp(14px, 1.1vw, 16px);
     font-weight: $font-weight-medium;
     text-align: center;
     vertical-align: middle;
@@ -131,14 +103,6 @@
       border-bottom-right-radius: 16px;
     }
   }
-
-  @include desktop-up {
-    th,
-    td {
-      padding: 24px 16px;
-      font-size: $font-size-body-sm;
-    }
-  }
 }
 
 .leaderboard__col--player {
@@ -186,23 +150,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: clamp(24px, 2.5vw, 40px);
+  height: clamp(24px, 2.5vw, 40px);
   flex-shrink: 0;
   border: 2px solid $color-on-primary;
   border-radius: 50%;
   font-size: $font-size-label;
   font-weight: $font-weight-bold;
-
-  @media (min-width: $breakpoint-mobile + 1px) {
-    width: 28px;
-    height: 28px;
-  }
-
-  @include desktop-up {
-    width: 40px;
-    height: 40px;
-  }
 }
 
 .leaderboard__avatar--1 {

@@ -3,19 +3,8 @@
 @use '../../styles/breakpoints' as *;
 
 .new-games {
-  padding-top: 16px;
-  padding-bottom: 16px;
+  padding-block: clamp(16px, 3vw, 40px);
   background-color: $color-bg;
-
-  @media (min-width: $breakpoint-mobile + 1px) {
-    padding-top: 24px;
-    padding-bottom: 24px;
-  }
-
-  @include desktop-up {
-    padding-top: 40px;
-    padding-bottom: 40px;
-  }
 }
 
 .new-games__header {
@@ -23,13 +12,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 16px;
-  @include container;
-
-  @include desktop-up {
-    margin-bottom: 40px;
-    padding-inline: $section-offset-desktop;
-  }
+  margin-bottom: clamp(16px, 3vw, 40px);
+  padding-inline: clamp(16px, 6.25vw, 120px);
 }
 
 .new-games__title-group {
@@ -54,13 +38,9 @@
 .new-games__title {
   margin: 0;
   color: $color-on-primary;
-  font-size: $font-size-section-tablet;
+  font-size: clamp(24px, 2vw, 32px);
   font-weight: $font-weight-bold;
   line-height: 1.2;
-
-  @include desktop-up {
-    font-size: $font-size-section;
-  }
 }
 
 .new-games__nav {
@@ -76,19 +56,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: clamp(40px, 3vw, 48px);
+  height: clamp(40px, 3vw, 48px);
   padding: 0;
   border: 2px solid $color-on-primary;
   border-radius: 50%;
   background-color: $color-bg;
   cursor: pointer;
   transition: background-color $transition-fast;
-
-  @include desktop-up {
-    width: 48px;
-    height: 48px;
-  }
 
   @include hover {
     background-color: $color-primary;
@@ -112,21 +87,11 @@
 .new-games__track {
   display: flex;
   gap: 8px;
-  height: 200px;
+  height: clamp(200px, 36.5vw, 384px);
   margin: 0;
-  padding-inline: $offset-mobile;
+  padding-inline: clamp(16px, 6.25vw, 120px);
   list-style: none;
   overflow: hidden;
-
-  @media (min-width: $breakpoint-mobile + 1px) {
-    height: 280px;
-    padding-inline: $offset-tablet;
-  }
-
-  @include desktop-up {
-    height: 384px;
-    padding-inline: $section-offset-desktop;
-  }
 }
 
 .new-games__card {
@@ -171,15 +136,10 @@
 }
 
 .new-games__card--peek {
-  width: 56px;
-
-  @media (min-width: $breakpoint-mobile + 1px) {
-    width: 105px;
-  }
-
-  @include desktop-up {
-    width: 120px;
-  }
+  flex: 0 1 120px;
+  width: auto;
+  min-width: 40px;
+  max-width: 120px;
 }
 
 .new-games__card--side {
@@ -187,7 +147,10 @@
 
   @include desktop-up {
     display: block;
-    width: 288px;
+    flex: 0 1 288px;
+    width: auto;
+    min-width: 0;
+    max-width: 288px;
   }
 }
 

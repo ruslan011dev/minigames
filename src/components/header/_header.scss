@@ -6,23 +6,17 @@
   position: sticky;
   top: 0;
   z-index: $z-header;
-  height: $header-height-mobile;
+  height: clamp(64px, 9.4vw, 85px);
   background-color: $color-bg;
   border-bottom: $border-width solid $color-on-primary;
-
-  @media (min-width: $breakpoint-mobile + 1px) {
-    height: $header-height-tablet;
-  }
-
-  @include desktop-up {
-    height: $header-height-desktop;
-  }
 }
 
 .header__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: clamp(8px, 2vw, 24px);
+  min-width: 0;
   height: 100%;
   @include container;
 }
@@ -44,18 +38,15 @@
 }
 
 .header__logo-text {
-  font-size: $font-size-logo-tablet;
+  font-size: clamp(20px, 1.5vw, 24px);
   font-weight: $font-weight-bold;
   line-height: 1.2;
-
-  @include desktop-up {
-    font-size: $font-size-logo;
-  }
 }
 
 .header__nav {
+  min-width: 0;
   margin-left: auto;
-  margin-right: $spacing-xl;
+  margin-right: clamp(16px, 2vw, 32px);
 
   @include tablet-down {
     display: none;
@@ -65,7 +56,7 @@
 .header__nav-list {
   display: flex;
   align-items: center;
-  gap: $spacing-2xl;
+  gap: clamp(16px, 2vw, 40px);
   margin: 0;
   padding: 0;
   list-style: none;

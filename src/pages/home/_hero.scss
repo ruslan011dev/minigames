@@ -4,17 +4,9 @@
 
 .hero {
   position: relative;
-  height: $hero-height-mobile;
+  height: clamp(331px, 50vw, 627px);
   overflow: hidden;
   background-color: $hero-fill;
-
-  @media (min-width: $breakpoint-mobile + 1px) {
-    height: $hero-height-tablet;
-  }
-
-  @include desktop-up {
-    height: $hero-height-desktop;
-  }
 
   &::after {
     content: '';
@@ -44,65 +36,39 @@
   display: flex;
   align-items: center;
   height: 100%;
-  @include container;
-
-  @include desktop-up {
-    padding-inline: $hero-offset-desktop;
-  }
+  padding-inline: clamp(16px, 6.25vw, 120px);
 }
 
 .hero__card {
-  width: 100%;
-  max-width: $hero-card-max;
-  padding: $spacing-lg;
+  width: min(100%, 540px);
+  padding: clamp(24px, 3vw, 48px);
   background-color: $color-bg;
   border: $border-width solid $color-on-primary;
   border-radius: $radius-xl;
-
-  @media (min-width: $breakpoint-mobile + 1px) {
-    padding: $spacing-xl;
-  }
-
-  @include desktop-up {
-    padding: $spacing-3xl;
-  }
 }
 
 .hero__title {
   margin: 0;
   color: $color-on-primary;
-  font-size: $font-size-display-mobile;
+  font-size: clamp(28px, 4vw, 56px);
   font-weight: $font-weight-bold;
   line-height: 1.15;
-
-  @media (min-width: $breakpoint-mobile + 1px) {
-    font-size: $font-size-display-tablet;
-  }
-
-  @include desktop-up {
-    font-size: $font-size-display;
-  }
 }
 
 .hero__text {
   margin: $spacing-md 0 0;
   color: $color-on-bg;
-  font-size: $font-size-body-sm;
+  font-size: clamp(16px, 1.2vw, 18px);
   font-weight: $font-weight-medium;
   line-height: 1.45;
-
-  @include desktop-up {
-    margin-top: $spacing-lg;
-    font-size: $font-size-body;
-  }
 }
 
 .hero__cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: $spacing-lg;
-  padding: $spacing-sm $spacing-md;
+  margin-top: clamp(16px, 2vw, 32px);
+  padding: clamp(8px, 1vw, 16px) clamp(16px, 2vw, 32px);
   border: $border-width solid $color-on-primary;
   border-radius: $radius-sm;
   background-color: $color-primary;
@@ -113,11 +79,6 @@
   text-decoration: none;
   cursor: pointer;
   transition: background-color $transition-fast;
-
-  @include desktop-up {
-    margin-top: $spacing-xl;
-    padding: $btn-large-y $btn-large-x;
-  }
 
   @include hover {
     background-color: $color-primary-hover;

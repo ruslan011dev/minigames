@@ -3,27 +3,19 @@
 @use '../../styles/breakpoints' as *;
 
 .developer {
-  padding: 16px;
+  padding: clamp(16px, 3vw, 40px) clamp(16px, 6.25vw, 120px) clamp(40px, 6vw, 80px);
   background-color: $color-bg;
-
-  @media (min-width: $breakpoint-mobile + 1px) {
-    padding: 24px 40px;
-  }
-
-  @include desktop-up {
-    padding: 40px $section-offset-desktop 80px;
-  }
 }
 
 .developer__inner {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: clamp(16px, 3vw, 40px);
 
   @include desktop-up {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: stretch;
-    gap: 40px;
   }
 }
 
@@ -33,9 +25,9 @@
   height: auto;
 
   @include desktop-up {
-    width: 682px;
-    max-width: 50%;
-    flex-shrink: 0;
+    flex: 1 1 40%;
+    min-width: 0;
+    max-width: 682px;
   }
 }
 
@@ -44,41 +36,31 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: 16px;
-  padding: 24px 16px;
+  gap: clamp(16px, 2vw, 20px);
+  padding: clamp(24px, 3vw, 40px);
+  min-width: 0;
   border: 2px solid $color-on-primary;
   border-radius: 24px;
   background-color: $color-white;
   box-shadow: 0 12px 32px rgba(36, 33, 69, 0.12);
 
-  @media (min-width: $breakpoint-mobile + 1px) {
-    padding: 32px 24px;
-  }
-
   @include desktop-up {
-    gap: 20px;
-    padding: 40px;
-    flex: 1 1 auto;
-    max-width: none;
+    flex: 1 1 40%;
   }
 }
 
 .developer__title {
   margin: 0;
   color: $color-on-primary;
-  font-size: 28px;
+  font-size: clamp(24px, 2.2vw, 32px);
   font-weight: $font-weight-bold;
   line-height: 1.2;
-
-  @include desktop-up {
-    font-size: $font-size-section;
-  }
 }
 
 .developer__text {
   margin: 0;
   color: $color-on-bg;
-  font-size: $font-size-body;
+  font-size: clamp(16px, 1.15vw, 18px);
   //font-weight: $font-weight-medium;
   line-height: 1.45;
 }
