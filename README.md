@@ -48,4 +48,4 @@ public/          # static files (favicon, etc.)
 
 ## Deployment
 
-A public deploy link will be added when the Story 1 layout is ready.
+Live site: [https://ruslan011dev.github.io/minigames/](https://ruslan011dev.github.io/minigames/)
