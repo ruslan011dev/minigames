@@ -1,5 +1,6 @@
 import type { Page } from '../../types/page';
 import { Hero } from './hero';
+import { Leaderboard } from './leaderboard';
 import { NewGames } from './new-games';
 
 export class HomePage implements Page {
@@ -7,7 +8,7 @@ export class HomePage implements Page {
     const page = document.createElement('div');
     page.className = 'page page--home';
     page.setAttribute('data-page', 'home');
-    page.append(new Hero().render(), new NewGames().render());
+    page.append(new Hero().render(), new NewGames().render(), new Leaderboard().render());
 
     return page;
   }
