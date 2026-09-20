@@ -5,10 +5,10 @@
 .header {
   position: sticky;
   top: 0;
-  z-index: $z-header;
+  z-index: 100;
   height: clamp(64px, 9.4vw, 85px);
-  background-color: $color-bg;
-  border-bottom: $border-width solid $color-on-primary;
+  background-color: #f9f8f3;
+  border-bottom: 2px solid $color-on-primary;
 }
 
 .header__inner {
@@ -24,7 +24,7 @@
 .header__logo {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: 8px;
   color: $color-on-primary;
   text-decoration: none;
   cursor: pointer;
@@ -32,8 +32,8 @@
 
 .header__logo-icon {
   display: block;
-  width: $icon-size;
-  height: $icon-size;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
 }
 
@@ -64,11 +64,11 @@
 
 .header__nav-link {
   color: $color-on-bg;
-  font-size: $font-size-nav;
+  font-size: 16px;
   font-weight: $font-weight-medium;
   text-decoration: none;
   cursor: pointer;
-  transition: color $transition-fast;
+  transition: color 0.2s ease;
 
   @include hover {
     color: $color-on-primary;
@@ -87,21 +87,21 @@
 .header__actions {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
+  gap: 16px;
 }
 
 .header__btn {
-  padding: $btn-padding-y $btn-padding-x;
-  border: $border-width solid $color-on-primary;
-  border-radius: $radius-sm;
+  padding: 10px 20px;
+  border: 2px solid $color-on-primary;
+  border-radius: 8px;
   font-family: $font-main;
-  font-size: $font-size-label;
+  font-size: 14px;
   font-weight: $font-weight-bold;
   line-height: 1.2;
   cursor: pointer;
   transition:
-    background-color $transition-fast,
-    color $transition-fast;
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .header__btn--outline {
@@ -140,14 +140,14 @@
   }
 
   @include tablet-down {
-    padding: $spacing-sm $spacing-md;
+    padding: 8px 16px;
   }
 }
 
 .header__burger {
   display: none;
-  width: $icon-size;
-  height: $icon-size;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: none;
   background: transparent;
@@ -159,28 +159,29 @@
 
   img {
     display: block;
-    width: $icon-size;
-    height: $icon-size;
+    width: 32px;
+    height: 32px;
   }
 }
 
 .menu {
   position: fixed;
   inset: 0 0 0 auto;
-  z-index: $z-menu;
+  z-index: 200;
   display: flex;
   flex-direction: column;
-  width: min(100%, $menu-width);
-  max-width: $menu-width;
+  gap: 32px;
+  width: min(100%, 320px);
+  max-width: 320px;
   height: 100%;
   max-height: 100%;
   margin: 0;
-  padding: $spacing-lg;
+  padding: 24px;
   overflow: auto;
   border: none;
-  border-left: $border-width solid $color-on-primary;
-  background-color: $color-bg;
-  color: $color-on-primary;
+  border-left: 2px solid $color-on-primary;
+  background-color: #1e1b3a;
+  color: $color-white;
 }
 
 .menu:not([open]) {
@@ -192,58 +193,68 @@
   cursor: pointer;
 }
 
+.menu .header__logo-text {
+  color: $color-white;
+}
+
 .menu__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $spacing-md;
+  gap: 16px;
 }
 
 .menu__close {
-  width: $icon-size;
-  height: $icon-size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: none;
-  background: transparent;
+  border-radius: 8px;
+  background-color: #2a264f;
   cursor: pointer;
 
   img {
     display: block;
-    width: $icon-size;
-    height: $icon-size;
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) invert(1);
   }
 }
 
 .menu__nav {
-  margin-top: $spacing-xl;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .menu__list {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: 24px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .menu__link {
-  color: $color-on-bg;
-  font-size: $font-size-menu;
+  color: #b9b5c9;
+  font-size: 18px;
   font-weight: $font-weight-medium;
   text-decoration: none;
   cursor: pointer;
 
   @include hover {
-    color: $color-on-primary;
+    color: $color-white;
   }
 
   &:active {
-    color: $color-on-primary;
+    color: $color-white;
   }
 
   &[aria-current='page'] {
-    color: $color-on-primary;
+    color: $color-primary;
     font-weight: $font-weight-bold;
   }
 }
@@ -251,9 +262,8 @@
 .menu__actions {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: 16px;
   margin-top: auto;
-  padding-top: $spacing-xl;
 }
 
 .menu__btn {
@@ -266,4 +276,19 @@
 .menu .header__btn--outline,
 .menu .header__btn--primary {
   display: flex;
+}
+
+.menu .header__btn--outline {
+  border-color: $color-white;
+  color: $color-white;
+
+  @include hover {
+    background-color: $color-white;
+    color: #1e1b3a;
+  }
+
+  &:active {
+    background-color: $color-white;
+    color: #1e1b3a;
+  }
 }

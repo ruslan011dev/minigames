@@ -4,7 +4,7 @@
 
 .new-games {
   padding-block: clamp(16px, 3vw, 40px);
-  background-color: $color-bg;
+  background-color: #f9f8f3;
 }
 
 .new-games__header {
@@ -61,7 +61,7 @@
   padding: 0;
   border: 2px solid $color-on-primary;
   border-radius: 50%;
-  background-color: $color-bg;
+  background-color: #f9f8f3;
   cursor: pointer;
   transition: background-color $transition-fast;
 

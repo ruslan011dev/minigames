@@ -1,19 +1,18 @@
 @use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
-@use '../../styles/breakpoints' as *;
 
 .hero {
   position: relative;
   height: clamp(331px, 50vw, 627px);
   overflow: hidden;
-  background-color: $hero-fill;
+  background-color: #9a91b3;
 
   &::after {
     content: '';
     position: absolute;
     inset: 0;
     z-index: 1;
-    background-color: $hero-overlay;
+    background-color: rgba(95, 93, 117, 0.45);
     pointer-events: none;
   }
 }
@@ -27,7 +26,7 @@
   object-fit: cover;
   object-position: center right;
   pointer-events: none;
-  filter: grayscale($hero-media-grayscale) saturate($hero-media-saturate);
+  filter: grayscale(0.35) saturate(0.55);
 }
 
 .hero__inner {
@@ -42,9 +41,9 @@
 .hero__card {
   width: min(100%, 540px);
   padding: clamp(24px, 3vw, 48px);
-  background-color: $color-bg;
-  border: $border-width solid $color-on-primary;
-  border-radius: $radius-xl;
+  background-color: #f9f8f3;
+  border: 2px solid $color-on-primary;
+  border-radius: 24px;
 }
 
 .hero__title {
@@ -56,7 +55,7 @@
 }
 
 .hero__text {
-  margin: $spacing-md 0 0;
+  margin: 16px 0 0;
   color: $color-on-bg;
   font-size: clamp(16px, 1.2vw, 18px);
   font-weight: $font-weight-medium;
@@ -69,16 +68,16 @@
   justify-content: center;
   margin-top: clamp(16px, 2vw, 32px);
   padding: clamp(8px, 1vw, 16px) clamp(16px, 2vw, 32px);
-  border: $border-width solid $color-on-primary;
-  border-radius: $radius-sm;
+  border: 2px solid $color-on-primary;
+  border-radius: 8px;
   background-color: $color-primary;
   color: $color-on-primary;
   font-family: $font-main;
-  font-size: $font-size-label;
+  font-size: 14px;
   font-weight: $font-weight-bold;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color $transition-fast;
+  transition: background-color 0.2s ease;
 
   @include hover {
     background-color: $color-primary-hover;
