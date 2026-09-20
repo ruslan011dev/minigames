@@ -4,15 +4,7 @@
 @mixin container {
   width: 100%;
   margin-inline: auto;
-  padding-inline: $offset-mobile;
-
-  @media (min-width: $breakpoint-mobile + 1px) {
-    padding-inline: $offset-tablet;
-  }
-
-  @media (min-width: $breakpoint-tablet + 1px) {
-    padding-inline: $offset-desktop;
-  }
+  padding-inline: clamp(16px, 5.21vw, 80px);
 }
 
 @mixin hover {
