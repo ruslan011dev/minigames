@@ -1,3 +1,4 @@
+import { Footer } from '../components/footer/footer';
 import { Header } from '../components/header/header';
 import { HomePage } from '../pages/home/home-page';
 import type { Page } from '../types/page';
@@ -27,10 +28,7 @@ export class App {
     main.id = 'main-content';
     this.content = main;
 
-    const footer = document.createElement('footer');
-    footer.className = 'footer';
-
-    app.append(header, main, footer);
+    app.append(header, main, new Footer().render());
 
     return app;
   }
