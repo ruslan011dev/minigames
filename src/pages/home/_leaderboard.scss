@@ -6,7 +6,7 @@
   padding-block: clamp(16px, 3vw, 40px);
   padding-inline: clamp(16px, 6.25vw, 120px);
   overflow-x: auto;
-  background-color: $color-bg;
+  background-color: #f9f8f3;
 }
 
 .leaderboard__header {
@@ -43,7 +43,7 @@
   table-layout: auto;
   border-collapse: separate;
   border-spacing: 0;
-  background-color: $color-bg;
+  background-color: #f9f8f3;
   border: 2px solid $color-on-primary;
   border-radius: 16px;
 
