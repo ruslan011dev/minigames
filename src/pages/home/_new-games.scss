@@ -1,0 +1,235 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+@use '../../styles/breakpoints' as *;
+
+.new-games {
+  padding-top: $spacing-md;
+  padding-bottom: $spacing-md;
+  background-color: $color-bg;
+
+  @media (min-width: $breakpoint-mobile + 1px) {
+    padding-top: $spacing-lg;
+    padding-bottom: $spacing-lg;
+  }
+
+  @include desktop-up {
+    padding-top: $spacing-2xl;
+    padding-bottom: $spacing-2xl;
+  }
+}
+
+.new-games__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+  @include container;
+
+  @include desktop-up {
+    margin-bottom: $spacing-2xl;
+    padding-inline: $section-offset-desktop;
+  }
+}
+
+.new-games__title-group {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.new-games__accent {
+  display: block;
+  width: $accent-bar-width;
+  height: $accent-bar-height-tablet;
+  flex-shrink: 0;
+  background-color: $color-primary;
+  border-radius: $radius-sm;
+
+  @include desktop-up {
+    height: $accent-bar-height;
+  }
+}
+
+.new-games__title {
+  margin: 0;
+  color: $color-on-primary;
+  font-size: $font-size-section-tablet;
+  font-weight: $font-weight-bold;
+  line-height: 1.2;
+
+  @include desktop-up {
+    font-size: $font-size-section;
+  }
+}
+
+.new-games__nav {
+  display: none;
+  gap: $spacing-md;
+
+  @media (min-width: $breakpoint-mobile + 1px) {
+    display: flex;
+  }
+}
+
+.new-games__nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: $carousel-nav-size-tablet;
+  height: $carousel-nav-size-tablet;
+  padding: 0;
+  border: $border-width solid $color-on-primary;
+  border-radius: 50%;
+  background-color: $color-bg;
+  cursor: pointer;
+  transition: background-color $transition-fast;
+
+  @include desktop-up {
+    width: $carousel-nav-size;
+    height: $carousel-nav-size;
+  }
+
+  @include hover {
+    background-color: $color-primary;
+  }
+
+  &:active {
+    background-color: $color-primary-active;
+  }
+
+  img {
+    display: block;
+    width: 16px;
+    height: $spacing-lg;
+  }
+}
+
+.new-games__nav-btn--next {
+  background-color: $color-primary;
+}
+
+.new-games__track {
+  display: flex;
+  gap: $carousel-gap;
+  height: $carousel-height-mobile;
+  margin: 0;
+  padding-inline: $offset-mobile;
+  list-style: none;
+  overflow: hidden;
+
+  @media (min-width: $breakpoint-mobile + 1px) {
+    height: $carousel-height-tablet;
+    padding-inline: $offset-tablet;
+  }
+
+  @include desktop-up {
+    height: $carousel-height-desktop;
+    padding-inline: $section-offset-desktop;
+  }
+}
+
+.new-games__card {
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+}
+
+.new-games__card::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  height: $carousel-overlay-height;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, $color-overlay-strong 100%);
+  box-shadow: $shadow-card-bottom;
+}
+
+.new-games__cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.new-games__overlay {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md $spacing-md;
+  color: $color-white;
+}
+
+.new-games__card--peek {
+  width: $carousel-peek-mobile;
+
+  @media (min-width: $breakpoint-mobile + 1px) {
+    width: $carousel-peek-tablet;
+  }
+
+  @include desktop-up {
+    width: $carousel-peek-desktop;
+  }
+}
+
+.new-games__card--side {
+  display: none;
+
+  @include desktop-up {
+    display: block;
+    width: $carousel-side-desktop;
+  }
+}
+
+.new-games__card--active {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.new-games__card--peek .new-games__overlay {
+  display: none;
+
+  @include desktop-up {
+    display: none;
+  }
+}
+
+.new-games__name {
+  margin: 0;
+  overflow: hidden;
+  font-size: $font-size-label;
+  font-weight: $font-weight-bold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.new-games__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.new-games__stat {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-label;
+  font-weight: $font-weight-medium;
+
+  img {
+    display: block;
+    width: $spacing-md;
+    height: $spacing-md;
+  }
+}
