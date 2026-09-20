@@ -1,6 +1,7 @@
 import burgerUrl from '../../assets/icons/burger.svg?url';
 import closeUrl from '../../assets/icons/close.svg?url';
 import logoUrl from '../../assets/icons/logo.png';
+import type { AuthMode } from '../auth/auth';
 
 type NavItem = {
   label: string;
@@ -20,6 +21,8 @@ const TABLET_MAX_WIDTH = 768;
 export class Header {
   private burger: HTMLButtonElement | null = null;
   private menu: HTMLDialogElement | null = null;
+
+  constructor(private readonly onOpenAuth: (mode: AuthMode) => void) {}
 
   public render(): HTMLElement {
     const header = document.createElement('header');
@@ -94,8 +97,8 @@ export class Header {
     const actions = document.createElement('div');
     actions.className = 'header__actions';
 
-    const logIn = this.createAuthButton('Log In', 'header__btn header__btn--outline');
-    const signUp = this.createAuthButton('Sign Up', 'header__btn header__btn--primary');
+    const logIn = this.createAuthButton('Log In', 'header__btn header__btn--outline', 'login');
+    const signUp = this.createAuthButton('Sign Up', 'header__btn header__btn--primary', 'register');
 
     this.burger = document.createElement('button');
     this.burger.type = 'button';
@@ -116,12 +119,16 @@ export class Header {
     return actions;
   }
 
-  private createAuthButton(label: string, className: string): HTMLButtonElement {
+  private createAuthButton(label: string, className: string, mode: AuthMode): HTMLButtonElement {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = className;
-    button.dataset.action = 'open-auth';
+    button.dataset.auth = mode;
     button.textContent = label;
+    button.addEventListener('click', () => {
+      this.closeMenu();
+      this.onOpenAuth(mode);
+    });
 
     return button;
   }
@@ -152,8 +159,8 @@ export class Header {
     const actions = document.createElement('div');
     actions.className = 'menu__actions';
     actions.append(
-      this.createAuthButton('Log In', 'header__btn header__btn--outline menu__btn'),
-      this.createAuthButton('Sign Up', 'header__btn header__btn--primary menu__btn'),
+      this.createAuthButton('Log In', 'header__btn header__btn--outline menu__btn', 'login'),
+      this.createAuthButton('Sign Up', 'header__btn header__btn--primary menu__btn', 'register'),
     );
 
     menu.append(top, nav, actions);
