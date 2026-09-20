@@ -1,3 +1,4 @@
+import { AuthDialog } from '../components/auth/auth';
 import { Footer } from '../components/footer/footer';
 import { Header } from '../components/header/header';
 import { HomePage } from '../pages/home/home-page';
@@ -7,6 +8,7 @@ export class App {
   private readonly root: HTMLElement;
   private content: HTMLElement | null = null;
   private currentPage: Page | null = null;
+  private auth: AuthDialog | null = null;
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -21,14 +23,15 @@ export class App {
     const app = document.createElement('div');
     app.className = 'app';
 
-    const header = new Header().render();
+    this.auth = new AuthDialog();
+    const header = new Header((mode) => this.auth?.open(mode)).render();
 
     const main = document.createElement('main');
     main.className = 'content';
     main.id = 'main-content';
     this.content = main;
 
-    app.append(header, main, new Footer().render());
+    app.append(header, main, new Footer().render(), this.auth.render());
 
     return app;
   }
