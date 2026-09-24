@@ -1,15 +1,24 @@
 import type { Page } from '../../types/page';
-import { LibraryToolbar } from './library-toolbar';
+import { LibraryCards } from './library-cards';
+import { LibraryToolbar, type LibraryQuery } from './library-toolbar';
 
 export class LibraryPage implements Page {
   private toolbar: LibraryToolbar | null = null;
+  private cards: LibraryCards | null = null;
+  private cardSection: HTMLElement | null = null;
 
   public render(): HTMLElement {
     const page = document.createElement('div');
     page.className = 'page page--library';
 
-    this.toolbar = new LibraryToolbar();
-    page.append(this.createIntro(), this.toolbar.render());
+    this.toolbar = new LibraryToolbar((query) => this.showGames(query));
+    this.cards = new LibraryCards();
+    this.cardSection = this.cards.render(
+      this.toolbar.getQuery().category,
+      this.toolbar.getQuery().sort,
+    );
+
+    page.append(this.createIntro(), this.toolbar.render(), this.cardSection);
 
     return page;
   }
@@ -17,6 +26,16 @@ export class LibraryPage implements Page {
   public destroy(): void {
     this.toolbar?.destroy();
     this.toolbar = null;
+    this.cards = null;
+    this.cardSection = null;
+  }
+
+  private showGames(query: LibraryQuery): void {
+    if (!this.cards || !this.cardSection) {
+      return;
+    }
+
+    this.cards.update(this.cardSection, query.category, query.sort);
   }
 
   private createIntro(): HTMLElement {

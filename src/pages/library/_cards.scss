@@ -1,0 +1,186 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+@use '../../styles/breakpoints' as *;
+
+.library-cards {
+  padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
+  padding-block: $spacing-lg;
+}
+
+.library-cards__list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-lg;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @media (min-width: $breakpoint-desktop) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.library-cards__empty {
+  color: $color-on-bg;
+  font-size: $font-size-body-sm;
+}
+
+.library-card {
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  background-color: $color-white;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-md;
+
+  @include mobile-down {
+    flex-direction: column;
+  }
+}
+
+.library-card__cover {
+  flex-shrink: 0;
+  width: clamp($card-media-tablet, 17vw, $card-media-desktop);
+  height: $card-height-tablet;
+  object-fit: cover;
+
+  @media (min-width: $breakpoint-desktop) {
+    height: $card-height-desktop;
+  }
+
+  @include mobile-down {
+    width: 100%;
+    height: $card-media-mobile;
+  }
+}
+
+.library-card__body {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'heading price'
+    'text text'
+    'stats details';
+  gap: $spacing-sm $spacing-md;
+  align-items: center;
+  min-width: 0;
+  padding: $spacing-md;
+
+  @include mobile-down {
+    grid-template-areas:
+      'heading heading'
+      'text text'
+      'stats price'
+      'details details';
+  }
+}
+
+.library-card__heading {
+  display: flex;
+  grid-area: heading;
+  align-items: center;
+  gap: $spacing-sm;
+  min-width: 0;
+
+  @include mobile-down {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.library-card__title {
+  margin: 0;
+  overflow: hidden;
+  color: $color-on-primary;
+  font-size: $font-size-logo;
+  font-weight: $font-weight-bold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @include tablet-down {
+    font-size: $font-size-logo-tablet;
+  }
+}
+
+.library-card__badge {
+  flex-shrink: 0;
+  padding: $spacing-xs $spacing-sm;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-xl;
+  color: $color-on-primary;
+  font-size: $font-size-caption;
+  font-weight: $font-weight-bold;
+}
+
+.library-card__price {
+  grid-area: price;
+  margin: 0;
+  color: $color-primary;
+  font-size: $font-size-logo;
+  font-weight: $font-weight-bold;
+
+  @include tablet-down {
+    font-size: $font-size-logo-tablet;
+  }
+}
+
+.library-card__text {
+  display: -webkit-box;
+  grid-area: text;
+  margin: 0;
+  overflow: hidden;
+  color: $color-on-bg;
+  font-size: $font-size-body-sm;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+
+  @include tablet-down {
+    -webkit-line-clamp: 2;
+  }
+}
+
+.library-card__stats {
+  display: flex;
+  grid-area: stats;
+  align-items: center;
+  gap: $spacing-md;
+  min-width: 0;
+}
+
+.library-card__stat {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  color: $color-on-primary;
+  font-size: $font-size-label;
+  font-weight: $font-weight-bold;
+
+  img {
+    width: $icon-size-md;
+    height: $icon-size-md;
+  }
+}
+
+.library-card__details {
+  grid-area: details;
+  justify-self: end;
+  padding: $btn-padding-y $btn-padding-x;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-xl;
+  background-color: $color-white;
+  color: $color-on-primary;
+  font-family: $font-main;
+  font-size: $font-size-label;
+  font-weight: $font-weight-bold;
+  cursor: pointer;
+  transition: background-color $transition-fast;
+
+  @include hover {
+    background-color: $color-primary-hover;
+  }
+
+  @include mobile-down {
+    justify-self: stretch;
+  }
+}
