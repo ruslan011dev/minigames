@@ -3,40 +3,40 @@ import starUrl from '../../assets/icons/star.svg?url';
 import { selectLibraryGames, type LibraryGame } from './library-catalog';
 
 export class LibraryCards {
-  public render(category: string, sort: string | null): HTMLElement {
+  public render(category: string, sort: string | null, page: number): HTMLElement {
     const section = document.createElement('section');
     section.className = 'library-cards';
     section.setAttribute('aria-label', 'Games');
-    section.append(this.createList(category, sort));
+    section.append(this.createList(category, sort, page));
 
     return section;
   }
 
-  public update(section: HTMLElement, category: string, sort: string | null): void {
+  public update(section: HTMLElement, category: string, sort: string | null, page: number): void {
     const list = section.querySelector('.library-cards__list');
 
     if (!list) {
       return;
     }
 
-    list.replaceChildren(...this.createItems(category, sort));
+    list.replaceChildren(...this.createItems(category, sort, page));
   }
 
-  private createList(category: string, sort: string | null): HTMLElement {
+  private createList(category: string, sort: string | null, page: number): HTMLElement {
     const list = document.createElement('ul');
     list.className = 'library-cards__list';
-    list.append(...this.createItems(category, sort));
+    list.append(...this.createItems(category, sort, page));
 
     return list;
   }
 
-  private createItems(category: string, sort: string | null): HTMLElement[] {
-    const games = selectLibraryGames(category, sort);
+  private createItems(category: string, sort: string | null, page: number): HTMLElement[] {
+    const games = selectLibraryGames(category, sort, page);
 
     if (games.length === 0) {
       const empty = document.createElement('li');
       empty.className = 'library-cards__empty';
-      empty.textContent = 'No games in this category.';
+      empty.textContent = page > 1 ? 'No games on this page.' : 'No games in this category.';
       return [empty];
     }
 

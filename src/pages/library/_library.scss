@@ -1,6 +1,7 @@
 @use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
 @use 'cards';
+@use 'pagination';
 
 .library-intro,
 .library-toolbar {
