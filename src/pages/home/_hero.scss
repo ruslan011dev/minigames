@@ -3,16 +3,16 @@
 
 .hero {
   position: relative;
-  height: clamp(331px, 50vw, 627px);
+  height: clamp($hero-height-mobile, 50vw, $hero-height-desktop);
   overflow: hidden;
-  background-color: #9a91b3;
+  background-color: $color-hero-fill;
 
   &::after {
     content: '';
     position: absolute;
     inset: 0;
     z-index: 1;
-    background-color: rgba(95, 93, 117, 0.45);
+    background-color: $color-hero-overlay;
     pointer-events: none;
   }
 }
@@ -26,7 +26,7 @@
   object-fit: cover;
   object-position: center right;
   pointer-events: none;
-  filter: grayscale(0.35) saturate(0.55);
+  filter: grayscale($hero-media-grayscale) saturate($hero-media-saturate);
 }
 
 .hero__inner {
@@ -35,29 +35,29 @@
   display: flex;
   align-items: center;
   height: 100%;
-  padding-inline: clamp(16px, 6.25vw, 120px);
+  padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
 }
 
 .hero__card {
-  width: min(100%, 540px);
-  padding: clamp(24px, 3vw, 48px);
-  background-color: #f9f8f3;
-  border: 2px solid $color-on-primary;
-  border-radius: 24px;
+  width: min(100%, $hero-card-max);
+  padding: clamp($spacing-lg, 3vw, $spacing-3xl);
+  background-color: $color-bg;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-xl;
 }
 
 .hero__title {
   margin: 0;
   color: $color-on-primary;
-  font-size: clamp(28px, 4vw, 56px);
+  font-size: clamp($font-size-display-mobile, 4vw, $font-size-display);
   font-weight: $font-weight-bold;
   line-height: 1.15;
 }
 
 .hero__text {
-  margin: 16px 0 0;
+  margin: $spacing-md 0 0;
   color: $color-on-bg;
-  font-size: clamp(16px, 1.2vw, 18px);
+  font-size: clamp($font-size-body-sm, 1.2vw, $font-size-body);
   font-weight: $font-weight-medium;
   line-height: 1.45;
 }
@@ -66,18 +66,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: clamp(16px, 2vw, 32px);
-  padding: clamp(8px, 1vw, 16px) clamp(16px, 2vw, 32px);
-  border: 2px solid $color-on-primary;
-  border-radius: 8px;
+  margin-top: clamp($spacing-md, 2vw, $spacing-xl);
+  padding: clamp($spacing-sm, 1vw, $spacing-md) clamp($spacing-md, 2vw, $spacing-xl);
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-sm;
   background-color: $color-primary;
   color: $color-on-primary;
   font-family: $font-main;
-  font-size: 14px;
+  font-size: $font-size-label;
   font-weight: $font-weight-bold;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color $transition-fast;
 
   @include hover {
     background-color: $color-primary-hover;

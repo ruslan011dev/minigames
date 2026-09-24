@@ -3,14 +3,15 @@
 @use '../../styles/breakpoints' as *;
 
 .developer {
-  padding: clamp(16px, 3vw, 40px) clamp(16px, 6.25vw, 120px) clamp(40px, 6vw, 80px);
-  background-color: #f9f8f3;
+  padding: clamp($offset-mobile, 3vw, $spacing-2xl)
+    clamp($offset-mobile, 6.25vw, $section-offset-desktop) clamp($spacing-2xl, 6vw, $offset-desktop);
+  background-color: $color-bg;
 }
 
 .developer__inner {
   display: flex;
   flex-direction: column;
-  gap: clamp(16px, 3vw, 40px);
+  gap: clamp($offset-mobile, 3vw, $spacing-2xl);
 
   @include desktop-up {
     flex-direction: row;
@@ -27,7 +28,7 @@
   @include desktop-up {
     flex: 1 1 40%;
     min-width: 0;
-    max-width: 682px;
+    max-width: $developer-image-max;
   }
 }
 
@@ -36,13 +37,13 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: clamp(16px, 2vw, 20px);
-  padding: clamp(24px, 3vw, 40px);
+  gap: clamp($offset-mobile, 2vw, $btn-padding-x);
+  padding: clamp($spacing-lg, 3vw, $spacing-2xl);
   min-width: 0;
-  border: 2px solid $color-on-primary;
-  border-radius: 24px;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-xl;
   background-color: $color-white;
-  box-shadow: 0 12px 32px rgba(36, 33, 69, 0.12);
+  box-shadow: 0 12px $spacing-xl $color-shadow;
 
   @include desktop-up {
     flex: 1 1 40%;
@@ -52,7 +53,7 @@
 .developer__title {
   margin: 0;
   color: $color-on-primary;
-  font-size: clamp(24px, 2.2vw, 32px);
+  font-size: clamp($font-size-section-tablet, 2.2vw, $font-size-section);
   font-weight: $font-weight-bold;
   line-height: 1.2;
 }
@@ -60,7 +61,7 @@
 .developer__text {
   margin: 0;
   color: $color-on-bg;
-  font-size: clamp(16px, 1.15vw, 18px);
+  font-size: clamp($font-size-body-sm, 1.15vw, $font-size-body);
   //font-weight: $font-weight-medium;
   line-height: 1.45;
 }
@@ -69,10 +70,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border: 2px solid $color-on-primary;
-  border-radius: 12px;
+  gap: $spacing-sm;
+  padding: $btn-padding-y $btn-padding-x;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-lg;
   background-color: $color-primary;
   color: $color-on-primary;
   font-family: $font-main;

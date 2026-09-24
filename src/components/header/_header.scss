@@ -5,17 +5,17 @@
 .header {
   position: sticky;
   top: 0;
-  z-index: 100;
-  height: clamp(64px, 9.4vw, 85px);
-  background-color: #f9f8f3;
-  border-bottom: 2px solid $color-on-primary;
+  z-index: $z-header;
+  height: clamp($header-height-mobile, 9.4vw, $header-height-desktop);
+  background-color: $color-bg;
+  border-bottom: $border-width solid $color-on-primary;
 }
 
 .header__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: clamp(8px, 2vw, 24px);
+  gap: clamp($spacing-sm, 2vw, $spacing-lg);
   min-width: 0;
   height: 100%;
   @include container;
@@ -24,7 +24,7 @@
 .header__logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: $spacing-sm;
   color: $color-on-primary;
   text-decoration: none;
   cursor: pointer;
@@ -32,13 +32,13 @@
 
 .header__logo-icon {
   display: block;
-  width: 32px;
-  height: 32px;
+  width: $icon-size;
+  height: $icon-size;
   flex-shrink: 0;
 }
 
 .header__logo-text {
-  font-size: clamp(20px, 1.5vw, 24px);
+  font-size: clamp($font-size-logo-tablet, 1.5vw, $font-size-logo);
   font-weight: $font-weight-bold;
   line-height: 1.2;
 }
@@ -46,7 +46,7 @@
 .header__nav {
   min-width: 0;
   margin-left: auto;
-  margin-right: clamp(16px, 2vw, 32px);
+  margin-right: clamp($offset-mobile, 2vw, $spacing-xl);
 
   @include tablet-down {
     display: none;
@@ -56,7 +56,7 @@
 .header__nav-list {
   display: flex;
   align-items: center;
-  gap: clamp(16px, 2vw, 40px);
+  gap: clamp($offset-mobile, 2vw, $spacing-2xl);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -64,11 +64,11 @@
 
 .header__nav-link {
   color: $color-on-bg;
-  font-size: 16px;
+  font-size: $font-size-nav;
   font-weight: $font-weight-medium;
   text-decoration: none;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: color $transition-fast;
 
   @include hover {
     color: $color-on-primary;
@@ -87,21 +87,21 @@
 .header__actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: $spacing-md;
 }
 
 .header__btn {
-  padding: 10px 20px;
-  border: 2px solid $color-on-primary;
-  border-radius: 8px;
+  padding: $btn-padding-y $btn-padding-x;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-sm;
   font-family: $font-main;
-  font-size: 14px;
+  font-size: $font-size-label;
   font-weight: $font-weight-bold;
   line-height: 1.2;
   cursor: pointer;
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
+    background-color $transition-fast,
+    color $transition-fast;
 }
 
 .header__btn--outline {
@@ -140,14 +140,14 @@
   }
 
   @include tablet-down {
-    padding: 8px 16px;
+    padding: $spacing-sm $offset-mobile;
   }
 }
 
 .header__burger {
   display: none;
-  width: 32px;
-  height: 32px;
+  width: $icon-size;
+  height: $icon-size;
   padding: 0;
   border: none;
   background: transparent;
@@ -159,28 +159,28 @@
 
   img {
     display: block;
-    width: 32px;
-    height: 32px;
+    width: $icon-size;
+    height: $icon-size;
   }
 }
 
 .menu {
   position: fixed;
   inset: 0 0 0 auto;
-  z-index: 200;
+  z-index: $z-menu;
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  width: min(100%, 320px);
-  max-width: 320px;
+  gap: $spacing-xl;
+  width: min(100%, $menu-width);
+  max-width: $menu-width;
   height: 100%;
   max-height: 100%;
   margin: 0;
-  padding: 24px;
+  padding: $spacing-lg;
   overflow: auto;
   border: none;
-  border-left: 2px solid $color-on-primary;
-  background-color: #1e1b3a;
+  border-left: $border-width solid $color-on-primary;
+  background-color: $color-footer;
   color: $color-white;
 }
 
@@ -201,25 +201,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: $spacing-md;
 }
 
 .menu__close {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: $icon-size;
+  height: $icon-size;
   padding: 0;
   border: none;
-  border-radius: 8px;
-  background-color: #2a264f;
+  border-radius: $radius-sm;
+  background-color: $color-footer-raised;
   cursor: pointer;
 
   img {
     display: block;
-    width: 20px;
-    height: 20px;
+    width: $icon-size-sm;
+    height: $icon-size-sm;
     filter: brightness(0) invert(1);
   }
 }
@@ -232,15 +232,15 @@
 .menu__list {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: $spacing-lg;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .menu__link {
-  color: #b9b5c9;
-  font-size: 18px;
+  color: $color-on-footer;
+  font-size: $font-size-menu;
   font-weight: $font-weight-medium;
   text-decoration: none;
   cursor: pointer;
@@ -262,7 +262,7 @@
 .menu__actions {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: $spacing-md;
   margin-top: auto;
 }
 
@@ -284,11 +284,11 @@
 
   @include hover {
     background-color: $color-white;
-    color: #1e1b3a;
+    color: $color-footer;
   }
 
   &:active {
     background-color: $color-white;
-    color: #1e1b3a;
+    color: $color-footer;
   }
 }

@@ -3,15 +3,15 @@
 
 .auth {
   z-index: $z-auth;
-  width: min(calc(100% - 32px), 420px);
-  max-height: calc(100vh - 32px);
+  width: min(calc(100% - #{$spacing-xl}), $auth-width);
+  max-height: calc(100vh - #{$spacing-xl});
   margin: auto;
-  padding: clamp(16px, 4vw, 32px);
+  padding: clamp($offset-mobile, 4vw, $spacing-xl);
   overflow: auto;
-  border: 3px solid $color-on-primary;
+  border: $border-width-thick solid $color-on-primary;
   border-radius: $radius-xl;
-  background-color: #f9f8f3;
-  box-shadow: 8px 8px 0 #111;
+  background-color: $color-bg;
+  box-shadow: $spacing-sm $spacing-sm 0 $color-auth-shadow;
   color: $color-on-primary;
 }
 
@@ -26,20 +26,20 @@
 
 .auth__switcher {
   display: flex;
-  height: 48px;
-  margin-bottom: 24px;
+  height: $spacing-3xl;
+  margin-bottom: $spacing-lg;
   overflow: hidden;
-  border: 2.5px solid $color-on-primary;
-  border-radius: 12px;
+  border: $border-width-auth solid $color-on-primary;
+  border-radius: $radius-lg;
   background-color: $color-white;
 }
 
 .auth__tab {
   flex: 1 1 0;
   min-width: 0;
-  padding: 0 16px;
+  padding: 0 $spacing-md;
   border: none;
-  border-radius: 8px;
+  border-radius: $radius-sm;
   background: transparent;
   color: $color-on-bg;
   font-family: $font-main;
@@ -49,26 +49,26 @@
 }
 
 .auth__tab--active {
-  background-color: #2a264f;
+  background-color: $color-footer-raised;
   color: $color-white;
 }
 
 .auth__form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: $spacing-md;
 }
 
 .auth__header {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
 }
 
 .auth__title {
   margin: 0;
-  font-size: 24px;
+  font-size: $font-size-logo;
   font-weight: $font-weight-bold;
   line-height: 1.2;
 }
@@ -77,14 +77,14 @@
   margin: 0;
   color: $color-on-bg;
   font-size: $font-size-label;
-  font-weight: 400;
+  font-weight: $font-weight-regular;
   line-height: 1.2;
 }
 
 .auth__field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: $spacing-sm;
 }
 
 .auth__label {
@@ -96,11 +96,11 @@
 .auth__control {
   display: flex;
   align-items: center;
-  gap: 16px;
-  height: 48px;
-  padding-inline: 16px;
-  border: 2px solid $color-on-primary;
-  border-radius: 8px;
+  gap: $spacing-md;
+  height: $control-height;
+  padding-inline: $spacing-md;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-sm;
   background-color: $color-white;
 }
 
@@ -159,12 +159,12 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 52px;
-  margin-top: 8px;
-  border: 2.5px solid $color-on-primary;
-  border-radius: 12px;
+  height: $btn-height-lg;
+  margin-top: $spacing-sm;
+  border: $border-width-auth solid $color-on-primary;
+  border-radius: $radius-lg;
   background-color: $color-primary;
-  box-shadow: 0 4px 0 $color-on-primary;
+  box-shadow: 0 $spacing-xs 0 $color-on-primary;
   color: $color-on-primary;
   font-family: $font-main;
   font-size: $font-size-body-sm;
@@ -184,9 +184,9 @@
 .auth__divider {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: $spacing-md;
   color: $color-on-bg;
-  font-size: 12px;
+  font-size: $font-size-caption;
   font-weight: $font-weight-bold;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -195,7 +195,7 @@
   span:last-child {
     flex: 1 1 auto;
     height: 1px;
-    background-color: #d9d7e0;
+    background-color: $color-divider;
   }
 }
 
@@ -203,11 +203,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: $spacing-md;
   width: 100%;
-  height: 50px;
-  border: 2px solid $color-on-primary;
-  border-radius: 12px;
+  height: $btn-height-md;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-lg;
   background-color: $color-white;
   color: $color-on-primary;
   font-family: $font-main;
@@ -217,9 +217,9 @@
 }
 
 .auth__footer {
-  margin: 8px 0 0;
+  margin: $spacing-sm 0 0;
   color: $color-on-bg;
   font-size: $font-size-label;
-  font-weight: 400;
+  font-weight: $font-weight-regular;
   text-align: center;
 }

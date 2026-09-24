@@ -3,36 +3,36 @@
 @use '../../styles/breakpoints' as *;
 
 .leaderboard {
-  padding-block: clamp(16px, 3vw, 40px);
-  padding-inline: clamp(16px, 6.25vw, 120px);
+  padding-block: clamp($offset-mobile, 3vw, $spacing-2xl);
+  padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
   overflow-x: auto;
-  background-color: #f9f8f3;
+  background-color: $color-bg;
 }
 
 .leaderboard__header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: clamp(16px, 3vw, 40px);
+  gap: $spacing-md;
+  margin-bottom: clamp($offset-mobile, 3vw, $spacing-2xl);
 }
 
 .leaderboard__accent {
   display: block;
-  width: 8px;
-  height: 24px;
+  width: $accent-bar-width;
+  height: $spacing-lg;
   flex-shrink: 0;
   background-color: $color-primary;
-  border-radius: 8px;
+  border-radius: $radius-sm;
 
   @include desktop-up {
-    height: 32px;
+    height: $spacing-xl;
   }
 }
 
 .leaderboard__title {
   margin: 0;
   color: $color-on-primary;
-  font-size: clamp(24px, 2vw, 32px);
+  font-size: clamp($font-size-section-tablet, 2vw, $font-size-section);
   font-weight: $font-weight-bold;
   line-height: 1.2;
 }
@@ -43,38 +43,38 @@
   table-layout: auto;
   border-collapse: separate;
   border-spacing: 0;
-  background-color: #f9f8f3;
-  border: 2px solid $color-on-primary;
-  border-radius: 16px;
+  background-color: $color-bg;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-md;
 
   th,
   td {
-    padding: clamp(12px, 1.4vw, 24px) clamp(8px, 1vw, 16px);
+    padding: clamp(12px, 1.4vw, $spacing-lg) clamp($spacing-sm, 1vw, $spacing-md);
     color: $color-on-primary;
-    font-size: clamp(14px, 1.1vw, 16px);
+    font-size: clamp($font-size-label, 1.1vw, $font-size-body-sm);
     font-weight: $font-weight-medium;
     text-align: center;
     vertical-align: middle;
-    border-bottom: 2px solid $color-on-primary;
+    border-bottom: $border-width solid $color-on-primary;
   }
 
   th {
-    background-color: #3a2ebf;
+    background-color: $color-thead;
     color: $color-bg;
     font-weight: $font-weight-bold;
   }
 
   thead th:first-child {
-    border-top-left-radius: 16px;
+    border-top-left-radius: $radius-md;
   }
 
   thead th:last-child {
-    border-top-right-radius: 16px;
+    border-top-right-radius: $radius-md;
   }
 
   @include tablet-down {
     thead th:nth-child(5) {
-      border-top-right-radius: 16px;
+      border-top-right-radius: $radius-md;
     }
   }
 
@@ -83,11 +83,11 @@
   }
 
   tr:last-child td:first-child {
-    border-bottom-left-radius: 16px;
+    border-bottom-left-radius: $radius-md;
   }
 
   tr:last-child td:last-child {
-    border-bottom-right-radius: 16px;
+    border-bottom-right-radius: $radius-md;
   }
 
   @include tablet-down {
@@ -96,11 +96,11 @@
     }
 
     tbody tr:nth-child(3) td:first-child {
-      border-bottom-left-radius: 16px;
+      border-bottom-left-radius: $radius-md;
     }
 
     tbody tr:nth-child(3) td:nth-child(5) {
-      border-bottom-right-radius: 16px;
+      border-bottom-right-radius: $radius-md;
     }
   }
 }
@@ -135,7 +135,7 @@
 .leaderboard__player {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: $spacing-sm;
   min-width: 0;
 }
 
@@ -150,10 +150,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(24px, 2.5vw, 40px);
-  height: clamp(24px, 2.5vw, 40px);
+  width: clamp($spacing-lg, 2.5vw, $spacing-2xl);
+  height: clamp($spacing-lg, 2.5vw, $spacing-2xl);
   flex-shrink: 0;
-  border: 2px solid $color-on-primary;
+  border: $border-width solid $color-on-primary;
   border-radius: 50%;
   font-size: $font-size-label;
   font-weight: $font-weight-bold;
@@ -164,26 +164,26 @@
 }
 
 .leaderboard__avatar--2 {
-  background-color: #c9b8e8;
+  background-color: $color-avatar-2;
 }
 
 .leaderboard__avatar--3 {
-  background-color: #8fd4c1;
+  background-color: $color-avatar-3;
 }
 
 .leaderboard__avatar--4 {
-  background-color: #f4a5b8;
+  background-color: $color-avatar-4;
 }
 
 .leaderboard__avatar--5 {
-  background-color: #8ec8e8;
+  background-color: $color-avatar-5;
 }
 
 .leaderboard__chip {
   display: inline-flex;
-  padding: 4px 8px;
-  border: 2px solid $color-on-primary;
-  border-radius: 8px;
+  padding: $spacing-xs $spacing-sm;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-sm;
   font-size: $font-size-label;
   white-space: nowrap;
 }

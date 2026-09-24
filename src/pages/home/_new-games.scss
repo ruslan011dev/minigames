@@ -3,49 +3,49 @@
 @use '../../styles/breakpoints' as *;
 
 .new-games {
-  padding-block: clamp(16px, 3vw, 40px);
-  background-color: #f9f8f3;
+  padding-block: clamp($offset-mobile, 3vw, $spacing-2xl);
+  background-color: $color-bg;
 }
 
 .new-games__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: clamp(16px, 3vw, 40px);
-  padding-inline: clamp(16px, 6.25vw, 120px);
+  gap: $spacing-md;
+  margin-bottom: clamp($offset-mobile, 3vw, $spacing-2xl);
+  padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
 }
 
 .new-games__title-group {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: $spacing-md;
 }
 
 .new-games__accent {
   display: block;
-  width: 8px;
-  height: 24px;
+  width: $accent-bar-width;
+  height: $spacing-lg;
   flex-shrink: 0;
   background-color: $color-primary;
-  border-radius: 8px;
+  border-radius: $radius-sm;
 
   @include desktop-up {
-    height: 32px;
+    height: $spacing-xl;
   }
 }
 
 .new-games__title {
   margin: 0;
   color: $color-on-primary;
-  font-size: clamp(24px, 2vw, 32px);
+  font-size: clamp($font-size-section-tablet, 2vw, $font-size-section);
   font-weight: $font-weight-bold;
   line-height: 1.2;
 }
 
 .new-games__nav {
   display: none;
-  gap: 16px;
+  gap: $spacing-md;
 
   @media (min-width: $breakpoint-mobile + 1px) {
     display: flex;
@@ -56,12 +56,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(40px, 3vw, 48px);
-  height: clamp(40px, 3vw, 48px);
+  width: clamp($spacing-2xl, 3vw, $control-height);
+  height: clamp($spacing-2xl, 3vw, $control-height);
   padding: 0;
-  border: 2px solid $color-on-primary;
+  border: $border-width solid $color-on-primary;
   border-radius: 50%;
-  background-color: #f9f8f3;
+  background-color: $color-bg;
   cursor: pointer;
   transition: background-color $transition-fast;
 
@@ -75,8 +75,8 @@
 
   img {
     display: block;
-    width: 16px;
-    height: 24px;
+    width: $icon-size-xs;
+    height: $spacing-lg;
   }
 }
 
@@ -86,10 +86,10 @@
 
 .new-games__track {
   display: flex;
-  gap: 8px;
-  height: clamp(200px, 36.5vw, 384px);
+  gap: $spacing-sm;
+  height: clamp($carousel-height-min, 36.5vw, $carousel-height-max);
   margin: 0;
-  padding-inline: clamp(16px, 6.25vw, 120px);
+  padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
   list-style: none;
   overflow: hidden;
 }
@@ -98,8 +98,8 @@
   position: relative;
   flex-shrink: 0;
   overflow: hidden;
-  border-radius: 16px;
-  box-shadow: 0 12px 24px rgba(36, 33, 69, 0.28);
+  border-radius: $radius-md;
+  box-shadow: 0 12px $spacing-lg $color-shadow-strong;
 }
 
 .new-games__card::after {
@@ -109,10 +109,10 @@
   bottom: 0;
   left: 0;
   z-index: 1;
-  height: 56px;
+  height: $card-fade-height;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 0%, rgba(36, 33, 69, 0.88) 100%);
-  box-shadow: inset 0 -56px 32px rgba(36, 33, 69, 0.72);
+  background: linear-gradient(180deg, transparent 0%, $color-card-fade 100%);
+  box-shadow: inset 0 -$card-fade-height $spacing-xl $color-card-inset;
 }
 
 .new-games__cover {
@@ -130,16 +130,16 @@
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px 16px 16px;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md $spacing-md;
   color: $color-white;
 }
 
 .new-games__card--peek {
-  flex: 0 1 120px;
+  flex: 0 1 $carousel-peek;
   width: auto;
-  min-width: 40px;
-  max-width: 120px;
+  min-width: $spacing-2xl;
+  max-width: $carousel-peek;
 }
 
 .new-games__card--side {
@@ -147,10 +147,10 @@
 
   @include desktop-up {
     display: block;
-    flex: 0 1 288px;
+    flex: 0 1 $carousel-side;
     width: auto;
     min-width: 0;
-    max-width: 288px;
+    max-width: $carousel-side;
   }
 }
 
@@ -186,13 +186,13 @@
 .new-games__stat {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: $spacing-xs;
   font-size: $font-size-label;
   font-weight: $font-weight-medium;
 
   img {
     display: block;
-    width: 16px;
-    height: 16px;
+    width: $icon-size-xs;
+    height: $icon-size-xs;
   }
 }
