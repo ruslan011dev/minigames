@@ -1,0 +1,110 @@
+$color-bg: #f9f8f3;
+$color-on-primary: #242145;
+$color-on-bg: #5f5d75;
+$color-primary: #ffd02b;
+$color-primary-hover: #f5c51f;
+$color-primary-active: #e8b816;
+$color-white: #ffffff;
+$color-footer: #1e1b3a;
+$color-on-footer: #b9b5c9;
+$color-footer-raised: #2a264f;
+$color-thead: #3a2ebf;
+$color-hero-fill: #9a91b3;
+$color-overlay: rgba(36, 33, 69, 0.4);
+$color-hero-overlay: rgba(95, 93, 117, 0.45);
+$color-shadow: rgba(36, 33, 69, 0.12);
+$color-shadow-strong: rgba(36, 33, 69, 0.28);
+$color-divider: #d9d7e0;
+$color-auth-shadow: #111;
+
+$font-main: 'Inter', sans-serif;
+
+$font-size-display: 56px;
+$font-size-display-tablet: 32px;
+$font-size-display-mobile: 28px;
+$font-size-section: 32px;
+$font-size-section-tablet: 24px;
+$font-size-logo: 24px;
+$font-size-logo-tablet: 20px;
+$font-size-menu: 18px;
+$font-size-body: 18px;
+$font-size-body-sm: 16px;
+$font-size-nav: 16px;
+$font-size-label: 14px;
+$font-size-caption: 12px;
+
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+$page-max-width: 1920px;
+
+$offset-desktop: 80px;
+$offset-tablet: 40px;
+$offset-mobile: 16px;
+$section-offset-desktop: 120px;
+
+$header-height-desktop: 85px;
+$header-height-tablet: 72px;
+$header-height-mobile: 64px;
+
+$icon-size: 32px;
+$icon-size-sm: 20px;
+$icon-size-xs: 16px;
+
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-2xl: 40px;
+$spacing-3xl: 48px;
+
+$btn-padding-x: 20px;
+$btn-padding-y: 10px;
+$btn-large-x: 24px;
+$btn-large-y: 16px;
+
+$radius-sm: 8px;
+$radius-md: 16px;
+$radius-lg: 12px;
+$radius-xl: 24px;
+
+$border-width: 2px;
+$border-width-thick: 3px;
+$border-width-auth: 2.5px;
+
+$transition-fast: 0.2s ease;
+
+$z-header: 100;
+$z-menu: 200;
+$z-auth: 300;
+
+$menu-width: 320px;
+$auth-width: 420px;
+$control-height: 48px;
+$btn-height-lg: 52px;
+$btn-height-md: 50px;
+$hero-card-max: 540px;
+$hero-height-desktop: 627px;
+$hero-height-mobile: 331px;
+$hero-media-grayscale: 0.35;
+$hero-media-saturate: 0.55;
+
+$accent-bar-width: 8px;
+$developer-image-max: 682px;
+$color-avatar-2: #c9b8e8;
+$color-avatar-3: #8fd4c1;
+$color-avatar-4: #f4a5b8;
+$color-avatar-5: #8ec8e8;
+$color-card-fade: rgba(36, 33, 69, 0.88);
+$color-card-inset: rgba(36, 33, 69, 0.72);
+$color-footer-line: rgba(185, 181, 201, 0.35);
+
+$spacing-4xl: 64px;
+$carousel-height-min: 200px;
+$carousel-height-max: 384px;
+$carousel-peek: 120px;
+$carousel-side: 288px;
+$card-fade-height: 56px;
+$footer-brand-max: 400px;

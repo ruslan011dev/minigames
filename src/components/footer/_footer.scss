@@ -1,0 +1,162 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.footer {
+  padding: clamp($spacing-xl, 4vw, $spacing-2xl)
+    clamp($offset-mobile, 6.25vw, $section-offset-desktop);
+  background-color: $color-footer;
+  color: $color-on-footer;
+}
+
+.footer__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp($spacing-lg, 4vw, $spacing-4xl);
+}
+
+.footer__brand {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  flex: 1 1 240px;
+  max-width: $footer-brand-max;
+}
+
+.footer__logo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  color: $color-white;
+  text-decoration: none;
+}
+
+.footer__logo-icon {
+  display: block;
+  width: $icon-size;
+  height: $icon-size;
+  flex-shrink: 0;
+}
+
+.footer__logo-text {
+  color: $color-white;
+  font-size: clamp($font-size-logo-tablet, 1.5vw, $font-size-logo);
+  font-weight: $font-weight-bold;
+  line-height: 1.2;
+}
+
+.footer__tagline {
+  margin: 0;
+  color: $color-on-footer;
+  font-size: $font-size-label;
+  font-weight: $font-weight-regular;
+  line-height: 1.5;
+}
+
+.footer__columns {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1 1 280px;
+  gap: clamp($spacing-lg, 5vw, $offset-desktop);
+}
+
+.footer__column {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  flex: 1 1 120px;
+  min-width: 0;
+}
+
+.footer__heading {
+  margin: 0;
+  color: $color-white;
+  font-size: $font-size-body-sm;
+  font-weight: $font-weight-bold;
+}
+
+.footer__list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footer__link {
+  color: $color-on-footer;
+  font-size: $font-size-label;
+  font-weight: $font-weight-regular;
+  text-decoration: none;
+
+  @include hover {
+    color: $color-white;
+  }
+}
+
+.footer__social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footer__social-link {
+  display: flex;
+  line-height: 0;
+}
+
+.footer__social-link img {
+  display: block;
+  width: clamp($icon-size, 3vw, $spacing-2xl);
+  height: clamp($icon-size, 3vw, $spacing-2xl);
+}
+
+.footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $radius-lg $spacing-lg;
+  margin-top: clamp($spacing-lg, 4vw, $spacing-2xl);
+  padding-top: clamp($offset-mobile, 2vw, $spacing-lg);
+  border-top: 1px solid $color-footer-line;
+}
+
+.footer__copy,
+.footer__love {
+  margin: 0;
+  color: $color-on-footer;
+  font-size: clamp($font-size-caption, 1.2vw, $font-size-label);
+  font-weight: $font-weight-regular;
+}
+
+.footer__copy {
+  flex: 1 1 180px;
+}
+
+.footer__credit {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  color: $color-on-footer;
+  font-size: clamp($font-size-caption, 1.2vw, $font-size-label);
+  font-weight: $font-weight-regular;
+  text-decoration: none;
+  white-space: nowrap;
+
+  @include hover {
+    color: $color-white;
+  }
+
+  img {
+    display: block;
+    width: clamp($icon-size-sm, 1.6vw, $spacing-lg);
+    height: clamp($icon-size-sm, 1.6vw, $spacing-lg);
+    flex-shrink: 0;
+  }
+}

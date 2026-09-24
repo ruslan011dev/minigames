@@ -1,0 +1,19 @@
+@use '../variables' as *;
+
+.app {
+  min-height: 100vh;
+  max-width: $page-max-width;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: $color-bg;
+  color: $color-on-primary;
+}
+
+.content {
+  flex: 1 1 auto;
+}
+
+.page {
+  width: 100%;
+}

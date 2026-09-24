@@ -1,0 +1,34 @@
+@use './variables' as *;
+@use './breakpoints' as *;
+
+@mixin container {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: clamp($offset-mobile, 5.21vw, $offset-desktop);
+}
+
+@mixin hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @content;
+    }
+  }
+}
+
+@mixin tablet-down {
+  @media (max-width: $breakpoint-tablet) {
+    @content;
+  }
+}
+
+@mixin mobile-down {
+  @media (max-width: $breakpoint-mobile) {
+    @content;
+  }
+}
+
+@mixin desktop-up {
+  @media (min-width: $breakpoint-tablet + 1px) {
+    @content;
+  }
+}

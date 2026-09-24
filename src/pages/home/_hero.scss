@@ -1,0 +1,89 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.hero {
+  position: relative;
+  height: clamp($hero-height-mobile, 50vw, $hero-height-desktop);
+  overflow: hidden;
+  background-color: $color-hero-fill;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background-color: $color-hero-overlay;
+    pointer-events: none;
+  }
+}
+
+.hero__media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center right;
+  pointer-events: none;
+  filter: grayscale($hero-media-grayscale) saturate($hero-media-saturate);
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
+}
+
+.hero__card {
+  width: min(100%, $hero-card-max);
+  padding: clamp($spacing-lg, 3vw, $spacing-3xl);
+  background-color: $color-bg;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-xl;
+}
+
+.hero__title {
+  margin: 0;
+  color: $color-on-primary;
+  font-size: clamp($font-size-display-mobile, 4vw, $font-size-display);
+  font-weight: $font-weight-bold;
+  line-height: 1.15;
+}
+
+.hero__text {
+  margin: $spacing-md 0 0;
+  color: $color-on-bg;
+  font-size: clamp($font-size-body-sm, 1.2vw, $font-size-body);
+  font-weight: $font-weight-medium;
+  line-height: 1.45;
+}
+
+.hero__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: clamp($spacing-md, 2vw, $spacing-xl);
+  padding: clamp($spacing-sm, 1vw, $spacing-md) clamp($spacing-md, 2vw, $spacing-xl);
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-sm;
+  background-color: $color-primary;
+  color: $color-on-primary;
+  font-family: $font-main;
+  font-size: $font-size-label;
+  font-weight: $font-weight-bold;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color $transition-fast;
+
+  @include hover {
+    background-color: $color-primary-hover;
+  }
+
+  &:active {
+    background-color: $color-primary-active;
+  }
+}

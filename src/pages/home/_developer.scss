@@ -1,0 +1,113 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+@use '../../styles/breakpoints' as *;
+
+.developer {
+  padding: clamp($offset-mobile, 3vw, $spacing-2xl)
+    clamp($offset-mobile, 6.25vw, $section-offset-desktop) clamp($spacing-2xl, 6vw, $offset-desktop);
+  background-color: $color-bg;
+}
+
+.developer__inner {
+  display: flex;
+  flex-direction: column;
+  gap: clamp($offset-mobile, 3vw, $spacing-2xl);
+
+  @include desktop-up {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+}
+
+.developer__image {
+  display: block;
+  width: 100%;
+  height: auto;
+
+  @include desktop-up {
+    flex: 1 1 40%;
+    min-width: 0;
+    max-width: $developer-image-max;
+  }
+}
+
+.developer__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp($offset-mobile, 2vw, $btn-padding-x);
+  padding: clamp($spacing-lg, 3vw, $spacing-2xl);
+  min-width: 0;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-xl;
+  background-color: $color-white;
+  box-shadow: 0 12px $spacing-xl $color-shadow;
+
+  @include desktop-up {
+    flex: 1 1 40%;
+  }
+}
+
+.developer__title {
+  margin: 0;
+  color: $color-on-primary;
+  font-size: clamp($font-size-section-tablet, 2.2vw, $font-size-section);
+  font-weight: $font-weight-bold;
+  line-height: 1.2;
+}
+
+.developer__text {
+  margin: 0;
+  color: $color-on-bg;
+  font-size: clamp($font-size-body-sm, 1.15vw, $font-size-body);
+  //font-weight: $font-weight-medium;
+  line-height: 1.45;
+}
+
+.developer__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  padding: $btn-padding-y $btn-padding-x;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-lg;
+  background-color: $color-primary;
+  color: $color-on-primary;
+  font-family: $font-main;
+  font-size: $font-size-label;
+  font-weight: $font-weight-bold;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color $transition-fast;
+
+  @include hover {
+    background-color: $color-primary-hover;
+  }
+
+  &:active {
+    background-color: $color-primary-active;
+  }
+}
+
+.developer__cta-icon {
+  display: block;
+}
+
+.developer__contact {
+  margin: 0;
+  color: $color-on-bg;
+  font-size: $font-size-body-sm;
+  font-weight: $font-weight-medium;
+}
+
+.developer__mail {
+  color: $color-on-bg;
+  text-decoration: none;
+
+  @include hover {
+    text-decoration: underline;
+  }
+}
