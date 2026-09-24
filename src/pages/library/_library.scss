@@ -1,14 +1,194 @@
 @use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
 
-.library {
-  @include container;
-  padding-block: $spacing-2xl;
+.library-intro,
+.library-toolbar {
+  padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
 }
 
-.library__title {
+.library-intro {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding-block: clamp($spacing-md, 3vw, $spacing-2xl);
+}
+
+.library-intro__title {
   margin: 0;
   color: $color-on-primary;
-  font-size: $font-size-section;
+  font-size: $font-size-display;
   font-weight: $font-weight-bold;
+
+  @include tablet-down {
+    font-size: $font-size-display-tablet;
+  }
+
+  @include mobile-down {
+    font-size: $font-size-section-tablet;
+  }
+}
+
+.library-intro__text {
+  margin: 0;
+  color: $color-on-bg;
+  font-size: $font-size-body;
+  font-weight: $font-weight-medium;
+
+  @include tablet-down {
+    font-size: $font-size-body-sm;
+  }
+
+  @include mobile-down {
+    font-size: $font-size-label;
+  }
+}
+
+.library-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  padding-block: $spacing-md;
+
+  @include tablet-down {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.library-toolbar__filters {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  min-width: 0;
+
+  @include tablet-down {
+    gap: $spacing-sm;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+.library-chip {
+  flex-shrink: 0;
+  padding: $spacing-sm $spacing-md;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-xl;
+  background-color: $color-white;
+  color: $color-on-primary;
+  font-family: $font-main;
+  font-size: $font-size-label;
+  font-weight: $font-weight-bold;
+  cursor: pointer;
+  transition: background-color $transition-fast;
+
+  @include hover {
+    background-color: $color-primary-hover;
+  }
+
+  &--active {
+    background-color: $color-primary;
+  }
+}
+
+.library-sort {
+  position: relative;
+  flex-shrink: 0;
+
+  @include mobile-down {
+    width: 100%;
+  }
+}
+
+.library-sort__button {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $btn-padding-y $btn-padding-x;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-xl;
+  background-color: $color-white;
+  color: $color-on-primary;
+  font-family: $font-main;
+  font-size: $font-size-label;
+  font-weight: $font-weight-bold;
+  cursor: pointer;
+
+  @include mobile-down {
+    justify-content: space-between;
+    width: 100%;
+    padding-inline: $spacing-md;
+  }
+
+  @include tablet-down {
+    padding-inline: $spacing-md;
+  }
+}
+
+.library-sort__menu {
+  position: absolute;
+  z-index: $z-dropdown;
+  top: calc(100% + #{$spacing-xs});
+  right: 0;
+  width: $dropdown-width;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  background-color: $color-white;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-xl;
+
+  @include mobile-down {
+    left: 0;
+    width: 100%;
+  }
+}
+
+.library-sort__item {
+  margin: 0;
+}
+
+.library-sort__option {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  width: 100%;
+  padding: $spacing-md;
+  border: 0;
+  border-bottom: $border-width-thin solid $color-divider;
+  background-color: $color-white;
+  color: $color-on-primary;
+  font-family: $font-main;
+  font-size: $font-size-label;
+  font-weight: $font-weight-bold;
+  text-align: left;
+  cursor: pointer;
+
+  @include hover {
+    background-color: $color-primary-hover;
+  }
+}
+
+.library-sort__item:last-child .library-sort__option {
+  border-bottom: 0;
+}
+
+.library-sort__icon {
+  width: $icon-size-md;
+  height: $icon-size-md;
+}
+
+.library-sort__check {
+  width: $icon-size-xs;
+  height: $icon-size-xs;
+  visibility: hidden;
+}
+
+.library-sort__option--selected .library-sort__check {
+  visibility: visible;
 }
