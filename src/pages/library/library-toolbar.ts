@@ -22,14 +22,29 @@ const SORT_OPTIONS: SortOption[] = [
 
 const DEFAULT_SORT = 'rating-desc';
 
+export type LibraryQuery = {
+  category: string;
+  sort: string | null;
+};
+
 export class LibraryToolbar {
   private readonly categories: Category[] = categoriesFile.data;
   private activeCategory = this.categories.find((item) => item.isDefault)?.slug ?? 'all';
   private activeSort = DEFAULT_SORT;
+  private sortTouched = false;
   private open = false;
   private sortButton: HTMLButtonElement | null = null;
   private sortLabel: HTMLElement | null = null;
   private sortMenu: HTMLUListElement | null = null;
+
+  constructor(private readonly onChange?: (query: LibraryQuery) => void) {}
+
+  public getQuery(): LibraryQuery {
+    return {
+      category: this.activeCategory,
+      sort: this.sortTouched ? this.activeSort : null,
+    };
+  }
 
   public render(): HTMLElement {
     const section = document.createElement('section');
@@ -69,6 +84,7 @@ export class LibraryToolbar {
           item.classList.toggle('library-chip--active', selected);
           item.setAttribute('aria-pressed', String(selected));
         });
+        this.emit();
       });
 
       group.append(chip);
@@ -144,6 +160,7 @@ export class LibraryToolbar {
     this.markSortOption(button, option.id === this.activeSort);
     button.addEventListener('click', (event) => {
       event.stopPropagation();
+      this.sortTouched = true;
       this.activeSort = option.id;
       this.sortMenu
         ?.querySelectorAll<HTMLButtonElement>('.library-sort__option')
@@ -153,6 +170,7 @@ export class LibraryToolbar {
       if (this.sortLabel) {
         this.sortLabel.textContent = this.sortText();
       }
+      this.emit();
       this.setOpen(false);
     });
 
@@ -164,6 +182,10 @@ export class LibraryToolbar {
   private markSortOption(button: HTMLButtonElement, selected: boolean): void {
     button.classList.toggle('library-sort__option--selected', selected);
     button.setAttribute('aria-selected', String(selected));
+  }
+
+  private emit(): void {
+    this.onChange?.(this.getQuery());
   }
 
   private sortText(): string {
