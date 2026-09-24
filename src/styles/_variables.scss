@@ -49,6 +49,7 @@ $header-height-tablet: 72px;
 $header-height-mobile: 64px;
 
 $icon-size: 32px;
+$icon-size-md: 24px;
 $icon-size-sm: 20px;
 $icon-size-xs: 16px;
 
@@ -70,12 +71,14 @@ $radius-md: 16px;
 $radius-lg: 12px;
 $radius-xl: 24px;
 
+$border-width-thin: 1px;
 $border-width: 2px;
 $border-width-thick: 3px;
 $border-width-auth: 2.5px;
 
 $transition-fast: 0.2s ease;
 
+$z-dropdown: 50;
 $z-header: 100;
 $z-menu: 200;
 $z-auth: 300;
@@ -108,3 +111,4 @@ $carousel-peek: 120px;
 $carousel-side: 288px;
 $card-fade-height: 56px;
 $footer-brand-max: 400px;
+$dropdown-width: 200px;
