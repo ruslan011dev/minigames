@@ -62,12 +62,27 @@ const catalog: LibraryGame[] = CARD_ORDER.flatMap((slug) => {
   ];
 });
 
-export function selectLibraryGames(category: string, sort: string | null): LibraryGame[] {
+export function libraryPageCount(category: string): number {
+  if (category === 'all') {
+    return Math.ceil(gamesFile.meta.totalItems / LIBRARY_PAGE_SIZE);
+  }
+
+  const count = catalog.filter((game) => game.category === category).length;
+
+  return Math.max(1, Math.ceil(count / LIBRARY_PAGE_SIZE));
+}
+
+export function selectLibraryGames(
+  category: string,
+  sort: string | null,
+  page: number,
+): LibraryGame[] {
   const filtered =
     category === 'all' ? catalog : catalog.filter((game) => game.category === category);
   const ordered = sort ? sortGames(filtered, sort) : filtered;
+  const start = (page - 1) * LIBRARY_PAGE_SIZE;
 
-  return ordered.slice(0, LIBRARY_PAGE_SIZE);
+  return ordered.slice(start, start + LIBRARY_PAGE_SIZE);
 }
 
 function categoryLabel(slug: string): string {

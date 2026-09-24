@@ -1,24 +1,39 @@
 import type { Page } from '../../types/page';
+import { libraryPageCount } from './library-catalog';
 import { LibraryCards } from './library-cards';
+import { LibraryPagination } from './library-pagination';
 import { LibraryToolbar, type LibraryQuery } from './library-toolbar';
 
 export class LibraryPage implements Page {
   private toolbar: LibraryToolbar | null = null;
   private cards: LibraryCards | null = null;
   private cardSection: HTMLElement | null = null;
+  private pagination: LibraryPagination | null = null;
+  private pageNumber = 1;
 
   public render(): HTMLElement {
     const page = document.createElement('div');
     page.className = 'page page--library';
 
-    this.toolbar = new LibraryToolbar((query) => this.showGames(query));
+    this.toolbar = new LibraryToolbar((query) => {
+      this.pageNumber = 1;
+      this.showGames(query);
+    });
     this.cards = new LibraryCards();
-    this.cardSection = this.cards.render(
-      this.toolbar.getQuery().category,
-      this.toolbar.getQuery().sort,
-    );
+    this.pagination = new LibraryPagination((pageNumber) => {
+      this.pageNumber = pageNumber;
+      this.showGames(this.currentQuery());
+    });
 
-    page.append(this.createIntro(), this.toolbar.render(), this.cardSection);
+    const query = this.toolbar.getQuery();
+    this.cardSection = this.cards.render(query.category, query.sort, this.pageNumber);
+
+    page.append(
+      this.createIntro(),
+      this.toolbar.render(),
+      this.cardSection,
+      this.pagination.render(libraryPageCount(query.category)),
+    );
 
     return page;
   }
@@ -28,6 +43,7 @@ export class LibraryPage implements Page {
     this.toolbar = null;
     this.cards = null;
     this.cardSection = null;
+    this.pagination = null;
   }
 
   private showGames(query: LibraryQuery): void {
@@ -35,7 +51,17 @@ export class LibraryPage implements Page {
       return;
     }
 
-    this.cards.update(this.cardSection, query.category, query.sort);
+    const pageCount = libraryPageCount(query.category);
+    if (this.pageNumber > pageCount) {
+      this.pageNumber = 1;
+    }
+
+    this.pagination?.setState(this.pageNumber, pageCount);
+    this.cards.update(this.cardSection, query.category, query.sort, this.pageNumber);
+  }
+
+  private currentQuery(): LibraryQuery {
+    return this.toolbar?.getQuery() ?? { category: 'all', sort: null };
   }
 
   private createIntro(): HTMLElement {
