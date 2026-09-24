@@ -1,0 +1,14 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.library {
+  @include container;
+  padding-block: $spacing-2xl;
+}
+
+.library__title {
+  margin: 0;
+  color: $color-on-primary;
+  font-size: $font-size-section;
+  font-weight: $font-weight-bold;
+}

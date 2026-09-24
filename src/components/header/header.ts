@@ -1,24 +1,26 @@
 import burgerUrl from '../../assets/icons/burger.svg?url';
 import closeUrl from '../../assets/icons/close.svg?url';
 import logoUrl from '../../assets/icons/logo.png';
+import type { PageId } from '../../types/page';
 import type { AuthMode } from '../auth/auth';
 
 type NavItem = {
   label: string;
-  href: string;
-  current?: boolean;
+  target: PageId;
+  navId?: PageId;
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Home', href: '/', current: true },
-  { label: 'Library', href: '/library' },
-  { label: 'Tournaments', href: '/tournaments' },
-  { label: 'Community', href: '/community' },
+  { label: 'Home', target: 'home', navId: 'home' },
+  { label: 'Library', target: 'library', navId: 'library' },
+  { label: 'Tournaments', target: 'home' },
+  { label: 'Community', target: 'home' },
 ];
 
 const TABLET_MAX_WIDTH = 768;
 
 export class Header {
+  private root: HTMLElement | null = null;
   private burger: HTMLButtonElement | null = null;
   private menu: HTMLDialogElement | null = null;
 
@@ -34,15 +36,32 @@ export class Header {
     this.menu = this.createMenu();
     inner.append(this.createLogo(), this.createNav(), this.createActions());
     header.append(inner, this.menu);
+    this.root = header;
+    this.setCurrentPage('home');
     this.bindEvents();
 
     return header;
+  }
+
+  public setCurrentPage(page: PageId): void {
+    this.root?.querySelectorAll<HTMLAnchorElement>('[data-nav]').forEach((link) => {
+      if (link.dataset.nav === page) {
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
+  }
+
+  public dismissMenu(): void {
+    this.closeMenu();
   }
 
   private createLogo(): HTMLAnchorElement {
     const logo = document.createElement('a');
     logo.className = 'header__logo';
     logo.href = '/';
+    logo.dataset.page = 'home';
     logo.setAttribute('aria-label', 'MiniGames home');
 
     const image = document.createElement('img');
@@ -82,11 +101,12 @@ export class Header {
     const li = document.createElement('li');
     const link = document.createElement('a');
     link.className = className;
-    link.href = item.href;
+    link.href = item.target === 'library' ? '/library' : '/';
+    link.dataset.page = item.target;
     link.textContent = item.label;
 
-    if (item.current) {
-      link.setAttribute('aria-current', 'page');
+    if (item.navId) {
+      link.dataset.nav = item.navId;
     }
 
     li.append(link);
