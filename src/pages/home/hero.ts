@@ -36,6 +36,7 @@ export class Hero {
     const cta = document.createElement('a');
     cta.className = 'hero__cta';
     cta.href = '/library';
+    cta.dataset.page = 'library';
     cta.textContent = 'Browse Library';
 
     card.append(title, text, cta);

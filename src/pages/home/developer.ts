@@ -36,7 +36,8 @@ export class DeveloperCta {
 
     const cta = document.createElement('a');
     cta.className = 'developer__cta';
-    cta.href = '#';
+    cta.href = '/';
+    cta.dataset.page = 'home';
 
     const icon = document.createElement('img');
     icon.className = 'developer__cta-icon';
