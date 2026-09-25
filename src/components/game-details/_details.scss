@@ -1,0 +1,95 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+$details-width: 600px;
+
+.details {
+  z-index: $z-auth;
+  width: min(calc(100% - #{$spacing-xl}), $details-width);
+  max-height: calc(100vh - #{$spacing-xl});
+  margin: auto;
+  padding: $spacing-lg;
+  overflow: auto;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-xl;
+  background-color: $color-bg;
+  color: $color-on-primary;
+  opacity: 0;
+  translate: 0 $spacing-lg;
+  transition:
+    opacity $transition-fast,
+    translate $transition-fast,
+    overlay $transition-fast allow-discrete,
+    display $transition-fast allow-discrete;
+
+  &[open] {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  @starting-style {
+    &[open] {
+      opacity: 0;
+      translate: 0 $spacing-lg;
+    }
+  }
+
+  @include mobile-down {
+    width: 100%;
+    max-height: 100%;
+    border-radius: 0;
+  }
+}
+
+.details:not([open]) {
+  display: none;
+}
+
+.details::backdrop {
+  background-color: $color-overlay;
+  opacity: 0;
+  cursor: pointer;
+  transition:
+    opacity $transition-fast,
+    overlay $transition-fast allow-discrete,
+    display $transition-fast allow-discrete;
+}
+
+.details[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  .details[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .details,
+  .details::backdrop {
+    transition: none;
+  }
+}
+
+.details__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding: $spacing-xs;
+  border: 0;
+  background-color: transparent;
+  cursor: pointer;
+
+  img {
+    width: $icon-size;
+    height: $icon-size;
+  }
+}
+
+.details__title {
+  margin: $spacing-md 0 0;
+  font-size: $font-size-section;
+  font-weight: $font-weight-bold;
+}

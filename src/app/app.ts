@@ -1,4 +1,5 @@
 import { AuthDialog } from '../components/auth/auth';
+import { GameDetailsDialog } from '../components/game-details/game-details';
 import { Footer } from '../components/footer/footer';
 import { Header } from '../components/header/header';
 import { HomePage } from '../pages/home/home-page';
@@ -12,6 +13,7 @@ export class App {
   private pageId: PageId = 'home';
   private header: Header | null = null;
   private auth: AuthDialog | null = null;
+  private details: GameDetailsDialog | null = null;
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -27,6 +29,7 @@ export class App {
     app.className = 'app';
 
     this.auth = new AuthDialog();
+    this.details = new GameDetailsDialog();
     this.header = new Header((mode) => this.auth?.open(mode));
 
     const main = document.createElement('main');
@@ -34,7 +37,13 @@ export class App {
     main.id = 'main-content';
     this.content = main;
 
-    app.append(this.header.render(), main, new Footer().render(), this.auth.render());
+    app.append(
+      this.header.render(),
+      main,
+      new Footer().render(),
+      this.auth.render(),
+      this.details.render(),
+    );
     app.addEventListener('click', this.onLinkClick);
 
     return app;
@@ -44,6 +53,11 @@ export class App {
     const target = event.target;
 
     if (!(target instanceof Element)) {
+      return;
+    }
+
+    if (target.closest('[data-game-details]')) {
+      this.details?.open();
       return;
     }
 

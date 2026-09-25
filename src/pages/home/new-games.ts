@@ -150,8 +150,14 @@ export class NewGames {
     meta.className = 'new-games__meta';
     meta.append(this.createMeta(starUrl, game.rating), this.createMeta(heartUrl, game.likes));
 
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'new-games__open';
+    open.dataset.gameDetails = '';
+    open.setAttribute('aria-label', `Open details for ${game.title}`);
+
     overlay.append(name, meta);
-    item.append(image, overlay);
+    item.append(image, overlay, open);
 
     return item;
   }

@@ -119,6 +119,7 @@ export class LibraryCards {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'library-card__details';
+    button.dataset.gameDetails = '';
     button.textContent = 'Details';
     button.setAttribute('aria-label', `Details for ${name}`);
 
