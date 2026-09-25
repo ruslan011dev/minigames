@@ -339,7 +339,7 @@ dialog.details {
   display: flex;
   align-items: flex-start;
   gap: $spacing-md;
-  margin-bottom: $spacing-md;
+  margin: 0 0 $spacing-md;
 
   .details__avatar {
     margin-top: $spacing-xs;

@@ -62,7 +62,7 @@ export class NewGames {
   public render(): HTMLElement {
     const section = document.createElement('section');
     section.className = 'new-games';
-    section.setAttribute('aria-label', 'New games');
+    section.setAttribute('aria-labelledby', 'new-games-title');
     section.append(this.createHeader(), this.createTrack());
     section.addEventListener('keydown', this.onKeyDown);
     this.updateCards();
@@ -81,6 +81,7 @@ export class NewGames {
     accent.className = 'new-games__accent';
 
     const title = document.createElement('h2');
+    title.id = 'new-games-title';
     title.className = 'new-games__title';
     title.textContent = 'New Games';
 
@@ -91,8 +92,9 @@ export class NewGames {
   }
 
   private createNav(): HTMLElement {
-    const nav = document.createElement('div');
+    const nav = document.createElement('nav');
     nav.className = 'new-games__nav';
+    nav.setAttribute('aria-label', 'Slider');
     const previous = this.createNavButton('Previous games', arrowLeftUrl, false);
     const next = this.createNavButton('Next games', arrowRightUrl, true);
     previous.addEventListener('click', () => this.step(-1));
@@ -153,13 +155,16 @@ export class NewGames {
     const overlay = document.createElement('div');
     overlay.className = 'new-games__overlay';
 
-    const name = document.createElement('p');
+    const name = document.createElement('h3');
     name.className = 'new-games__name';
     name.textContent = game.title;
 
     const meta = document.createElement('div');
     meta.className = 'new-games__meta';
-    meta.append(this.createMeta(starUrl, game.rating), this.createMeta(heartUrl, game.likes));
+    meta.append(
+      this.createMeta(starUrl, game.rating, 'Rating'),
+      this.createMeta(heartUrl, game.likes, 'Likes'),
+    );
 
     const open = document.createElement('button');
     open.type = 'button';
@@ -173,9 +178,10 @@ export class NewGames {
     return item;
   }
 
-  private createMeta(icon: string, value: string): HTMLElement {
+  private createMeta(icon: string, value: string, name: string): HTMLElement {
     const wrap = document.createElement('span');
     wrap.className = 'new-games__stat';
+    wrap.setAttribute('aria-label', `${name} ${value}`);
 
     const image = document.createElement('img');
     image.src = icon;

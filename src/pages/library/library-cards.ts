@@ -6,8 +6,14 @@ export class LibraryCards {
   public render(category: string, sort: string | null, page: number): HTMLElement {
     const section = document.createElement('section');
     section.className = 'library-cards';
-    section.setAttribute('aria-label', 'Games');
-    section.append(this.createList(category, sort, page));
+    section.setAttribute('aria-labelledby', 'library-games-title');
+
+    const title = document.createElement('h2');
+    title.id = 'library-games-title';
+    title.className = 'visually-hidden';
+    title.textContent = 'Games';
+
+    section.append(title, this.createList(category, sort, page));
 
     return section;
   }
@@ -68,7 +74,7 @@ export class LibraryCards {
     const heading = document.createElement('div');
     heading.className = 'library-card__heading';
 
-    const title = document.createElement('h2');
+    const title = document.createElement('h3');
     title.className = 'library-card__title';
     title.textContent = game.name;
 
@@ -94,14 +100,18 @@ export class LibraryCards {
   private createStats(game: LibraryGame): HTMLElement {
     const stats = document.createElement('div');
     stats.className = 'library-card__stats';
-    stats.append(this.createStat(starUrl, game.rating), this.createStat(heartUrl, game.likes));
+    stats.append(
+      this.createStat(starUrl, game.rating, 'Rating'),
+      this.createStat(heartUrl, game.likes, 'Likes'),
+    );
 
     return stats;
   }
 
-  private createStat(iconUrl: string, value: string): HTMLElement {
+  private createStat(iconUrl: string, value: string, name: string): HTMLElement {
     const stat = document.createElement('span');
     stat.className = 'library-card__stat';
+    stat.setAttribute('aria-label', `${name} ${value}`);
 
     const icon = document.createElement('img');
     icon.src = iconUrl;

@@ -91,12 +91,14 @@ export class Footer {
   }
 
   private createLinkColumn(title: string, items: LinkItem[]): HTMLElement {
-    const column = document.createElement('div');
+    const column = document.createElement('nav');
     column.className = 'footer__column';
 
-    const heading = document.createElement('p');
+    const heading = document.createElement('h2');
+    heading.id = `footer-${title.toLowerCase()}`;
     heading.className = 'footer__heading';
     heading.textContent = title;
+    column.setAttribute('aria-labelledby', heading.id);
 
     const list = document.createElement('ul');
     list.className = 'footer__list';
@@ -118,12 +120,14 @@ export class Footer {
   }
 
   private createCommunity(): HTMLElement {
-    const column = document.createElement('div');
+    const column = document.createElement('nav');
     column.className = 'footer__column footer__column--social';
 
-    const heading = document.createElement('p');
+    const heading = document.createElement('h2');
+    heading.id = 'footer-community';
     heading.className = 'footer__heading';
     heading.textContent = 'Community';
+    column.setAttribute('aria-labelledby', heading.id);
 
     const list = document.createElement('ul');
     list.className = 'footer__social';

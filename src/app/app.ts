@@ -35,9 +35,16 @@ export class App {
     const main = document.createElement('main');
     main.className = 'content';
     main.id = 'main-content';
+    main.tabIndex = -1;
     this.content = main;
 
+    const skip = document.createElement('a');
+    skip.className = 'skip-link';
+    skip.href = '#main-content';
+    skip.textContent = 'Skip to content';
+
     app.append(
+      skip,
       this.header.render(),
       main,
       new Footer().render(),

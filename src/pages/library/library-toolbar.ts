@@ -49,8 +49,14 @@ export class LibraryToolbar {
   public render(): HTMLElement {
     const section = document.createElement('section');
     section.className = 'library-toolbar';
-    section.setAttribute('aria-label', 'Filter and sort');
-    section.append(this.createFilters(), this.createSort());
+    section.setAttribute('aria-labelledby', 'library-filters-title');
+
+    const title = document.createElement('h2');
+    title.id = 'library-filters-title';
+    title.className = 'visually-hidden';
+    title.textContent = 'Filter and sort';
+
+    section.append(title, this.createFilters(), this.createSort());
 
     return section;
   }
