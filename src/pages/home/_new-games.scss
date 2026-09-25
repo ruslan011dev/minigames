@@ -102,6 +102,17 @@ $card-open-layer: 3;
   overflow: hidden;
   border-radius: $radius-md;
   box-shadow: 0 12px $spacing-lg $color-shadow-strong;
+  transition:
+    flex-basis $transition-fast,
+    flex-grow $transition-fast,
+    max-width $transition-fast,
+    min-width $transition-fast;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .new-games__card {
+    transition: none;
+  }
 }
 
 .new-games__card::after {
