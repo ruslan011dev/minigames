@@ -97,8 +97,8 @@ export class GameDetailsDialog {
     const ratings = document.createElement('div');
     ratings.className = 'details__ratings';
     ratings.append(
-      this.createStat(starUrl, GAME.rating.toFixed(1)),
-      this.createStat(heartUrl, formatLikes(GAME.likesCount)),
+      this.createStat(starUrl, GAME.rating.toFixed(1), 'Rating'),
+      this.createStat(heartUrl, formatLikes(GAME.likesCount), 'Likes'),
     );
 
     heading.append(title, ratings);
@@ -106,9 +106,10 @@ export class GameDetailsDialog {
     return heading;
   }
 
-  private createStat(iconUrl: string, value: string): HTMLElement {
+  private createStat(iconUrl: string, value: string, name: string): HTMLElement {
     const stat = document.createElement('p');
     stat.className = 'details__stat';
+    stat.setAttribute('aria-label', `${name} ${value}`);
 
     const icon = document.createElement('img');
     icon.src = iconUrl;
@@ -273,8 +274,9 @@ export class GameDetailsDialog {
   }
 
   private createComposer(): HTMLElement {
-    const composer = document.createElement('div');
+    const composer = document.createElement('form');
     composer.className = 'details__composer';
+    composer.addEventListener('submit', this.onSendComment);
 
     const avatar = document.createElement('span');
     avatar.className = 'details__avatar';
@@ -290,7 +292,7 @@ export class GameDetailsDialog {
     this.commentField = field;
 
     const send = document.createElement('button');
-    send.type = 'button';
+    send.type = 'submit';
     send.className = 'details__send';
     send.setAttribute('aria-label', 'Send comment');
 
@@ -298,7 +300,6 @@ export class GameDetailsDialog {
     icon.src = sendUrl;
     icon.alt = '';
     send.append(icon);
-    send.addEventListener('click', this.onSendComment);
 
     composer.append(avatar, field, send);
 
@@ -392,7 +393,9 @@ export class GameDetailsDialog {
     this.resizeComment();
   };
 
-  private onSendComment = (): void => {
+  private onSendComment = (event: Event): void => {
+    event.preventDefault();
+
     if (!this.commentField || this.commentField.value.trim() === '') {
       return;
     }

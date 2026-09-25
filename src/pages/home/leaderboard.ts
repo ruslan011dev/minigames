@@ -78,7 +78,7 @@ export class Leaderboard {
   public render(): HTMLElement {
     const section = document.createElement('section');
     section.className = 'leaderboard';
-    section.setAttribute('aria-label', 'Top players');
+    section.setAttribute('aria-labelledby', 'leaderboard-title');
     section.append(this.createHeader(), this.createTable());
 
     return section;
@@ -92,6 +92,7 @@ export class Leaderboard {
     accent.className = 'leaderboard__accent';
 
     const title = document.createElement('h2');
+    title.id = 'leaderboard-title';
     title.className = 'leaderboard__title';
     title.textContent = 'Top Players This Week';
 
@@ -104,7 +105,7 @@ export class Leaderboard {
     const table = document.createElement('table');
     table.className = 'leaderboard__table';
 
-    table.setAttribute('aria-label', 'Top players this week');
+    table.setAttribute('aria-labelledby', 'leaderboard-title');
     table.append(this.createHead(), this.createBody());
 
     return table;
