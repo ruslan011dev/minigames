@@ -1,7 +1,9 @@
 import closeUrl from '../../assets/icons/close.svg?url';
 import heartUrl from '../../assets/icons/heart.svg?url';
+import sendUrl from '../../assets/icons/send.svg?url';
 import starUrl from '../../assets/icons/star.svg?url';
 import heroUrl from '../../assets/images/tukoni-forest-keepers-hero.jpg';
+import commentsFile from '../../mock-data/comments-tukoni-forest-keepers.json';
 import gameFile from '../../mock-data/game-tukoni-forest-keepers.json';
 
 const GAME = gameFile.data;
@@ -15,6 +17,8 @@ const SPECS = [
 
 const RECORD_MEDALS = ['🥇', '🥈', '🥉'] as const;
 const RECORD_WHEN = ['2 days ago', '5 days ago', '1 week ago'] as const;
+const COMMENT_WHEN = ['3 hours ago', '1 day ago', '3 days ago'] as const;
+const COMMENT_PLACEHOLDER = 'Write a comment...';
 
 const FAVORITE_ADD = 'Add to Favorites';
 const FAVORITE_REMOVE = 'Remove from Favorites';
@@ -24,6 +28,8 @@ export class GameDetailsDialog {
   private favoriteButton: HTMLButtonElement | null = null;
   private favoriteLabel: HTMLElement | null = null;
   private favorite = false;
+  private commentField: HTMLTextAreaElement | null = null;
+  private likeButtons: HTMLButtonElement[] = [];
 
   public render(): HTMLDialogElement {
     const dialog = document.createElement('dialog');
@@ -73,6 +79,7 @@ export class GameDetailsDialog {
       this.createSpecs(),
       this.createActions(),
       this.createRecords(),
+      this.createComments(),
     );
 
     return body;
@@ -236,6 +243,131 @@ export class GameDetailsDialog {
     return item;
   }
 
+  private createComments(): HTMLElement {
+    const section = document.createElement('section');
+    section.className = 'details__comments';
+    section.setAttribute('aria-labelledby', 'details-comments-title');
+
+    const title = document.createElement('h3');
+    title.id = 'details-comments-title';
+    title.className = 'details__comments-title';
+    title.textContent = `Comments (${commentsFile.meta.totalComments})`;
+
+    const list = document.createElement('ul');
+    list.className = 'details__comment-list';
+    commentsFile.data.forEach((comment, index) => {
+      list.append(
+        this.createComment(
+          comment.authorName,
+          comment.text,
+          comment.likesCount,
+          comment.createdAt,
+          index,
+        ),
+      );
+    });
+
+    section.append(title, this.createComposer(), list);
+
+    return section;
+  }
+
+  private createComposer(): HTMLElement {
+    const composer = document.createElement('div');
+    composer.className = 'details__composer';
+
+    const avatar = document.createElement('span');
+    avatar.className = 'details__avatar';
+    avatar.setAttribute('aria-hidden', 'true');
+    avatar.textContent = 'U';
+
+    const field = document.createElement('textarea');
+    field.className = 'details__field';
+    field.rows = 1;
+    field.placeholder = COMMENT_PLACEHOLDER;
+    field.setAttribute('aria-label', COMMENT_PLACEHOLDER);
+    field.addEventListener('input', this.onCommentInput);
+    this.commentField = field;
+
+    const send = document.createElement('button');
+    send.type = 'button';
+    send.className = 'details__send';
+    send.setAttribute('aria-label', 'Send comment');
+
+    const icon = document.createElement('img');
+    icon.src = sendUrl;
+    icon.alt = '';
+    send.append(icon);
+    send.addEventListener('click', this.onSendComment);
+
+    composer.append(avatar, field, send);
+
+    return composer;
+  }
+
+  private createComment(
+    author: string,
+    text: string,
+    likes: number,
+    createdAt: string,
+    index: number,
+  ): HTMLLIElement {
+    const item = document.createElement('li');
+    const article = document.createElement('article');
+    article.className = 'details__comment';
+
+    const head = document.createElement('div');
+    head.className = 'details__comment-head';
+
+    const avatar = document.createElement('span');
+    avatar.className = `details__avatar details__avatar--comment details__avatar--${index + 1}`;
+    avatar.setAttribute('aria-hidden', 'true');
+    avatar.textContent = author.slice(0, 1);
+
+    const name = document.createElement('span');
+    name.className = 'details__author';
+    name.textContent = author;
+
+    const time = document.createElement('time');
+    time.className = 'details__comment-time';
+    time.dateTime = createdAt;
+    time.textContent = COMMENT_WHEN[index] ?? '';
+
+    head.append(avatar, name, time);
+
+    const body = document.createElement('p');
+    body.className = 'details__comment-text';
+    body.textContent = text;
+
+    article.append(head, body, this.createLike(author, likes));
+    item.append(article);
+
+    return item;
+  }
+
+  private createLike(author: string, likes: number): HTMLButtonElement {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'details__like';
+    button.dataset.base = String(likes);
+    button.setAttribute('aria-pressed', 'false');
+    button.setAttribute('aria-label', `Like comment by ${author}`);
+
+    const icon = document.createElement('img');
+    icon.src = heartUrl;
+    icon.alt = '';
+
+    const count = document.createElement('span');
+    count.className = 'details__like-count';
+    count.textContent = String(likes);
+
+    button.append(icon, count);
+    button.addEventListener('click', () => this.onLikeClick(button));
+    this.likeButtons.push(button);
+
+    return button;
+  }
+
   private createClose(): HTMLButtonElement {
     const button = document.createElement('button');
     button.type = 'button';
@@ -256,8 +388,36 @@ export class GameDetailsDialog {
     this.setFavorite(!this.favorite);
   };
 
+  private onCommentInput = (): void => {
+    this.resizeComment();
+  };
+
+  private onSendComment = (): void => {
+    if (!this.commentField || this.commentField.value.trim() === '') {
+      return;
+    }
+
+    this.commentField.value = '';
+    this.resizeComment();
+  };
+
+  private onLikeClick(button: HTMLButtonElement): void {
+    const liked = button.getAttribute('aria-pressed') === 'true';
+    const next = !liked;
+    const base = Number(button.dataset.base);
+    const count = button.querySelector('.details__like-count');
+
+    button.setAttribute('aria-pressed', String(next));
+    button.classList.toggle('details__like--active', next);
+
+    if (count) {
+      count.textContent = String(base + (next ? 1 : 0));
+    }
+  }
+
   private onDialogClose = (): void => {
     this.setFavorite(false);
+    this.resetComments();
   };
 
   private onDialogClick = (event: MouseEvent): void => {
@@ -276,6 +436,39 @@ export class GameDetailsDialog {
     if (this.favoriteLabel) {
       this.favoriteLabel.textContent = text;
     }
+  }
+
+  private resizeComment(): void {
+    const field = this.commentField;
+
+    if (!field) {
+      return;
+    }
+
+    if (field.value === '') {
+      field.style.height = '';
+      return;
+    }
+
+    field.style.height = 'auto';
+    field.style.height = `${field.scrollHeight}px`;
+  }
+
+  private resetComments(): void {
+    if (this.commentField) {
+      this.commentField.value = '';
+      this.commentField.style.height = '';
+    }
+
+    this.likeButtons.forEach((button) => {
+      button.setAttribute('aria-pressed', 'false');
+      button.classList.remove('details__like--active');
+      const count = button.querySelector('.details__like-count');
+
+      if (count) {
+        count.textContent = button.dataset.base ?? '';
+      }
+    });
   }
 }
 
