@@ -3,6 +3,8 @@
 @use 'cards';
 @use 'pagination';
 
+$color-sort-option-hover: #fff9e5;
+
 .library-intro,
 .library-toolbar {
   padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
@@ -101,7 +103,12 @@
   position: relative;
   flex-shrink: 0;
 
+  @include tablet-down {
+    align-self: flex-start;
+  }
+
   @include mobile-down {
+    align-self: stretch;
     width: 100%;
   }
 }
@@ -145,7 +152,8 @@
   border: $border-width solid $color-on-primary;
   border-radius: $radius-xl;
 
-  @include mobile-down {
+  @include tablet-down {
+    right: auto;
     left: 0;
     width: 100%;
   }
@@ -172,8 +180,12 @@
   cursor: pointer;
 
   @include hover {
-    background-color: $color-primary-hover;
+    background-color: $color-sort-option-hover;
   }
+}
+
+.library-sort__option--selected {
+  background-color: $color-primary;
 }
 
 .library-sort__item:last-child .library-sort__option {

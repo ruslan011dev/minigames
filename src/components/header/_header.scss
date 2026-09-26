@@ -182,6 +182,25 @@
   border-left: $border-width solid $color-on-primary;
   background-color: $color-footer;
   color: $color-white;
+  opacity: 0;
+  translate: 100% 0;
+  transition:
+    opacity $transition-fast,
+    translate $transition-fast,
+    overlay $transition-fast allow-discrete,
+    display $transition-fast allow-discrete;
+
+  &[open] {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  @starting-style {
+    &[open] {
+      opacity: 0;
+      translate: 100% 0;
+    }
+  }
 }
 
 .menu:not([open]) {
@@ -190,7 +209,29 @@
 
 .menu::backdrop {
   background-color: $color-overlay;
+  opacity: 0;
   cursor: pointer;
+  transition:
+    opacity $transition-fast,
+    overlay $transition-fast allow-discrete,
+    display $transition-fast allow-discrete;
+}
+
+.menu[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  .menu[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu,
+  .menu::backdrop {
+    transition: none;
+  }
 }
 
 .menu .header__logo-text {

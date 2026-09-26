@@ -224,9 +224,12 @@ export class Header {
   };
 
   private closeMenu = (): void => {
-    if (this.menu?.open) {
-      this.menu.close();
+    if (!this.menu?.open) {
+      return;
     }
+
+    this.onMenuClosed();
+    this.menu.close();
   };
 
   private onMenuClosed = (): void => {

@@ -2,6 +2,10 @@
 @use '../../styles/mixins' as *;
 @use '../../styles/breakpoints' as *;
 
+$color-price-free: #2f9e6a;
+$color-badge: #f0eefe;
+$library-card-stack: 610px;
+
 .library-cards {
   padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
   padding-block: $spacing-lg;
@@ -33,7 +37,7 @@
   border: $border-width solid $color-on-primary;
   border-radius: $radius-md;
 
-  @include mobile-down {
+  @media (max-width: $library-card-stack) {
     flex-direction: column;
   }
 }
@@ -48,7 +52,7 @@
     height: $card-height-desktop;
   }
 
-  @include mobile-down {
+  @media (max-width: $library-card-stack) {
     width: 100%;
     height: $card-media-mobile;
   }
@@ -67,7 +71,7 @@
   min-width: 0;
   padding: $spacing-md;
 
-  @include mobile-down {
+  @media (max-width: $library-card-stack) {
     grid-template-areas:
       'heading heading'
       'text text'
@@ -83,7 +87,7 @@
   gap: $spacing-sm;
   min-width: 0;
 
-  @include mobile-down {
+  @media (max-width: $library-card-stack) {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -108,6 +112,7 @@
   padding: $spacing-xs $spacing-sm;
   border: $border-width solid $color-on-primary;
   border-radius: $radius-xl;
+  background-color: $color-badge;
   color: $color-on-primary;
   font-size: $font-size-caption;
   font-weight: $font-weight-bold;
@@ -123,6 +128,10 @@
   @include tablet-down {
     font-size: $font-size-logo-tablet;
   }
+}
+
+.library-card__price--free {
+  color: $color-price-free;
 }
 
 .library-card__text {
@@ -168,7 +177,7 @@
   padding: $btn-padding-y $btn-padding-x;
   border: $border-width solid $color-on-primary;
   border-radius: $radius-xl;
-  background-color: $color-white;
+  background-color: $color-primary;
   color: $color-on-primary;
   font-family: $font-main;
   font-size: $font-size-label;
@@ -180,7 +189,7 @@
     background-color: $color-primary-hover;
   }
 
-  @include mobile-down {
+  @media (max-width: $library-card-stack) {
     justify-self: stretch;
   }
 }

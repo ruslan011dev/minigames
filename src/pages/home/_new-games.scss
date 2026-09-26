@@ -21,7 +21,7 @@ $card-open-layer: 3;
 .new-games__title-group {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
+  gap: $spacing-sm;
 }
 
 .new-games__accent {
@@ -58,8 +58,8 @@ $card-open-layer: 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp($spacing-2xl, 3vw, $control-height);
-  height: clamp($spacing-2xl, 3vw, $control-height);
+  width: $spacing-2xl;
+  height: $spacing-2xl;
   padding: 0;
   border: $border-width solid $color-on-primary;
   border-radius: 50%;
@@ -77,8 +77,18 @@ $card-open-layer: 3;
 
   img {
     display: block;
-    width: $icon-size-xs;
-    height: $spacing-lg;
+    width: $icon-size-sm;
+    height: $icon-size-sm;
+  }
+
+  @media (min-width: $breakpoint-desktop) {
+    width: $control-height;
+    height: $control-height;
+
+    img {
+      width: $icon-size-md;
+      height: $icon-size-md;
+    }
   }
 }
 
@@ -94,6 +104,10 @@ $card-open-layer: 3;
   padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
   list-style: none;
   overflow: hidden;
+
+  @include desktop-up {
+    padding-inline: calc(clamp($offset-mobile, 6.25vw, $section-offset-desktop) + $spacing-sm);
+  }
 }
 
 .new-games__card {
@@ -125,7 +139,7 @@ $card-open-layer: 3;
   height: $card-fade-height;
   pointer-events: none;
   background: linear-gradient(180deg, transparent 0%, $color-card-fade 100%);
-  box-shadow: inset 0 -$card-fade-height $spacing-xl $color-card-inset;
+  box-shadow: inset 0 (-$card-fade-height) $spacing-xl $color-card-inset;
 }
 
 .new-games__open {

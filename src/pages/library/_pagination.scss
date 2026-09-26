@@ -1,6 +1,8 @@
 @use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
 
+$color-page-current: #3c376e;
+
 .library-pagination {
   display: flex;
   justify-content: center;
@@ -63,6 +65,13 @@
   }
 
   &--current {
-    background-color: $color-primary;
+    background-color: $color-page-current;
+    color: $color-white;
+
+    @include hover {
+      &:not(:disabled) {
+        background-color: $color-page-current;
+      }
+    }
   }
 }
