@@ -181,7 +181,7 @@ export class Footer {
 
     const github = document.createElement('a');
     github.className = 'footer__credit';
-    github.href = 'https://github.com/rolling-scopes-school';
+    github.href = 'https://github.com/ruslan011dev';
     github.target = '_blank';
     github.rel = 'noreferrer noopener';
 
@@ -190,7 +190,7 @@ export class Footer {
     githubIcon.alt = '';
 
     const githubLabel = document.createElement('span');
-    githubLabel.textContent = '@student-nickname';
+    githubLabel.textContent = '@ruslan011dev';
 
     github.append(githubIcon, githubLabel);
 
