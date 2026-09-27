@@ -39,6 +39,7 @@ export class GameDetailsDialog {
     dialog.append(this.createHero(), this.createBody());
     dialog.addEventListener('click', this.onDialogClick);
     dialog.addEventListener('close', this.onDialogClose);
+    dialog.addEventListener('cancel', this.onDialogClose);
     this.dialog = dialog;
 
     return dialog;
@@ -51,9 +52,12 @@ export class GameDetailsDialog {
   }
 
   public close(): void {
-    if (this.dialog?.open) {
-      this.dialog.close();
+    if (!this.dialog?.open) {
+      return;
     }
+
+    this.resetTransientState();
+    this.dialog.close();
   }
 
   private createHero(): HTMLElement {
@@ -419,9 +423,13 @@ export class GameDetailsDialog {
   }
 
   private onDialogClose = (): void => {
+    this.resetTransientState();
+  };
+
+  private resetTransientState(): void {
     this.setFavorite(false);
     this.resetComments();
-  };
+  }
 
   private onDialogClick = (event: MouseEvent): void => {
     if (event.target === this.dialog) {

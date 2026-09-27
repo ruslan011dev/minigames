@@ -88,6 +88,10 @@ export class LibraryCards {
     price.className = 'library-card__price';
     price.textContent = game.price;
 
+    if (game.price === 'Free') {
+      price.classList.add('library-card__price--free');
+    }
+
     const text = document.createElement('p');
     text.className = 'library-card__text';
     text.textContent = game.description;
