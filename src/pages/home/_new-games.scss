@@ -68,7 +68,9 @@ $card-open-layer: 3;
   transition: background-color $transition-fast;
 
   @include hover {
-    background-color: $color-primary;
+    &:not(:disabled) {
+      background-color: $color-primary;
+    }
   }
 
   &:active {
@@ -94,6 +96,23 @@ $card-open-layer: 3;
 
 .new-games__nav-btn--next {
   background-color: $color-primary;
+}
+
+.new-games__nav-btn:disabled {
+  opacity: $opacity-muted;
+  cursor: default;
+}
+
+.new-games__panel {
+  min-height: clamp($carousel-height-min, 36.5vw, $carousel-height-max);
+}
+
+.new-games__card--skeleton {
+  box-shadow: none;
+
+  &::after {
+    content: none;
+  }
 }
 
 .new-games__track {
