@@ -2,6 +2,7 @@ import { AuthDialog } from '../components/auth/auth';
 import { GameDetailsDialog } from '../components/game-details/game-details';
 import { Footer } from '../components/footer/footer';
 import { Header } from '../components/header/header';
+import { snackbar } from '../components/snackbar/snackbar';
 import { HomePage } from '../pages/home/home-page';
 import { LibraryPage } from '../pages/library/library-page';
 import { isPageId, type Page, type PageId } from '../types/page';
@@ -50,6 +51,7 @@ export class App {
       new Footer().render(),
       this.auth.render(),
       this.details.render(),
+      snackbar.render(),
     );
     app.addEventListener('click', this.onLinkClick);
 

@@ -1,0 +1,77 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.snackbar-host {
+  position: fixed;
+  right: $spacing-md;
+  bottom: $spacing-lg;
+  left: $spacing-md;
+  z-index: $z-snackbar;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.snackbar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  width: min(100%, $auth-width);
+  padding: $spacing-md;
+  border: $border-width solid transparent;
+  border-radius: $radius-md;
+  box-shadow: 0 $spacing-sm $spacing-lg $color-shadow-strong;
+  pointer-events: auto;
+  color: $color-on-primary;
+  background-color: $color-white;
+
+  &--success {
+    border-color: $color-success;
+    background-color: $color-success-surface;
+    color: $color-success;
+  }
+
+  &--error {
+    border-color: $color-danger;
+    background-color: $color-danger-surface;
+    color: $color-danger;
+  }
+
+  &--warning {
+    border-color: $color-warning;
+    background-color: $color-warning-surface;
+    color: $color-warning;
+  }
+
+  &--info {
+    border-color: $color-on-primary;
+    background-color: $color-info-surface;
+  }
+}
+
+.snackbar__text {
+  flex: 1;
+  margin: 0;
+  font-size: $font-size-label;
+  font-weight: $font-weight-medium;
+  line-height: 1.4;
+}
+
+.snackbar__close {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: $icon-size-md;
+  height: $icon-size-md;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  cursor: pointer;
+
+  img {
+    display: block;
+    width: $icon-size-xs;
+    height: $icon-size-xs;
+  }
+}
