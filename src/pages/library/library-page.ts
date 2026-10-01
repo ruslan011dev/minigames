@@ -7,7 +7,6 @@ import { LibraryToolbar, type LibraryQuery } from './library-toolbar';
 export class LibraryPage implements Page {
   private toolbar: LibraryToolbar | null = null;
   private cards: LibraryCards | null = null;
-  private cardSection: HTMLElement | null = null;
   private pagination: LibraryPagination | null = null;
   private pageNumber = 1;
 
@@ -26,12 +25,11 @@ export class LibraryPage implements Page {
     });
 
     const query = this.toolbar.getQuery();
-    this.cardSection = this.cards.render(query.category, query.sort, this.pageNumber);
 
     page.append(
       this.createIntro(),
       this.toolbar.render(),
-      this.cardSection,
+      this.cards.render(),
       this.pagination.render(libraryPageCount(query.category)),
     );
 
@@ -39,25 +37,21 @@ export class LibraryPage implements Page {
   }
 
   public destroy(): void {
+    this.cards?.destroy();
     this.toolbar?.destroy();
     this.toolbar = null;
     this.cards = null;
-    this.cardSection = null;
     this.pagination = null;
   }
 
   private showGames(query: LibraryQuery): void {
-    if (!this.cards || !this.cardSection) {
-      return;
-    }
-
     const pageCount = libraryPageCount(query.category);
+
     if (this.pageNumber > pageCount) {
       this.pageNumber = 1;
     }
 
     this.pagination?.setState(this.pageNumber, pageCount);
-    this.cards.update(this.cardSection, query.category, query.sort, this.pageNumber);
   }
 
   private currentQuery(): LibraryQuery {

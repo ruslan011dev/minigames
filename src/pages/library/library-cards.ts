@@ -1,9 +1,20 @@
 import heartUrl from '../../assets/icons/heart.svg?url';
 import starUrl from '../../assets/icons/star.svg?url';
-import { selectLibraryGames, type LibraryGame } from './library-catalog';
+import { ApiError, isAbortError } from '../../api/client';
+import { getLibraryGames, LIBRARY_PAGE_SIZE, type GameCard } from '../../api/games';
+import { createEmptyState, createErrorBanner } from '../../components/feedback/feedback';
+import { snackbar } from '../../components/snackbar/snackbar';
+import categoriesFile from '../../mock-data/categories.json';
+import { formatCompactCount, formatRating } from '../../utils/format';
+import { publicAssetUrl } from '../../utils/media';
 
 export class LibraryCards {
-  public render(category: string, sort: string | null, page: number): HTMLElement {
+  private panel: HTMLElement | null = null;
+  private controller: AbortController | null = null;
+  private alive = true;
+  private hadError = false;
+
+  public render(): HTMLElement {
     const section = document.createElement('section');
     section.className = 'library-cards';
     section.setAttribute('aria-labelledby', 'library-games-title');
@@ -13,43 +24,133 @@ export class LibraryCards {
     title.className = 'visually-hidden';
     title.textContent = 'Games';
 
-    section.append(title, this.createList(category, sort, page));
+    const panel = document.createElement('div');
+    panel.className = 'library-cards__panel';
+    this.panel = panel;
+
+    section.append(title, panel);
+    this.showLoading();
+    void this.load();
 
     return section;
   }
 
-  public update(section: HTMLElement, category: string, sort: string | null, page: number): void {
-    const list = section.querySelector('.library-cards__list');
+  public destroy(): void {
+    this.alive = false;
+    this.controller?.abort();
+  }
 
-    if (!list) {
+  private load = async (): Promise<void> => {
+    this.controller?.abort();
+    const controller = new AbortController();
+    this.controller = controller;
+    this.showLoading();
+
+    try {
+      const games = await getLibraryGames(controller.signal);
+
+      if (!this.alive || controller.signal.aborted) {
+        return;
+      }
+
+      if (games.length === 0) {
+        this.showEmpty();
+        snackbar.show('No games to show right now.', 'warning');
+        return;
+      }
+
+      this.showGames(games);
+
+      if (this.hadError) {
+        this.hadError = false;
+        snackbar.show('Games loaded.', 'success');
+      }
+    } catch (error) {
+      if (!this.alive || isAbortError(error)) {
+        return;
+      }
+
+      this.hadError = true;
+      const message = error instanceof ApiError ? error.message : 'Could not load games.';
+      this.showError(message);
+      snackbar.show(message, 'error');
+    }
+  };
+
+  private showLoading(): void {
+    if (!this.panel) {
       return;
     }
 
-    list.replaceChildren(...this.createItems(category, sort, page));
+    this.panel.setAttribute('aria-busy', 'true');
+    this.panel.replaceChildren(this.createSkeleton());
   }
 
-  private createList(category: string, sort: string | null, page: number): HTMLElement {
-    const list = document.createElement('ul');
-    list.className = 'library-cards__list';
-    list.append(...this.createItems(category, sort, page));
-
-    return list;
-  }
-
-  private createItems(category: string, sort: string | null, page: number): HTMLElement[] {
-    const games = selectLibraryGames(category, sort, page);
-
-    if (games.length === 0) {
-      const empty = document.createElement('li');
-      empty.className = 'library-cards__empty';
-      empty.textContent = page > 1 ? 'No games on this page.' : 'No games in this category.';
-      return [empty];
+  private showError(message: string): void {
+    if (!this.panel) {
+      return;
     }
 
-    return games.map((game) => this.createCard(game));
+    this.panel.removeAttribute('aria-busy');
+    this.panel.replaceChildren(
+      createErrorBanner(message, () => {
+        void this.load();
+      }),
+    );
   }
 
-  private createCard(game: LibraryGame): HTMLLIElement {
+  private showEmpty(): void {
+    if (!this.panel) {
+      return;
+    }
+
+    this.panel.removeAttribute('aria-busy');
+    this.panel.replaceChildren(
+      createEmptyState(
+        'No games found',
+        'Games will show up here when the library has titles to browse.',
+      ),
+    );
+  }
+
+  private showGames(games: GameCard[]): void {
+    if (!this.panel) {
+      return;
+    }
+
+    this.panel.removeAttribute('aria-busy');
+    const list = document.createElement('ul');
+    list.className = 'library-cards__list';
+    list.append(...games.map((game) => this.createCard(game)));
+    this.panel.replaceChildren(list);
+  }
+
+  private createSkeleton(): HTMLElement {
+    const list = document.createElement('ul');
+    list.className = 'library-cards__list';
+    list.setAttribute('aria-hidden', 'true');
+
+    for (let index = 0; index < LIBRARY_PAGE_SIZE; index += 1) {
+      const item = document.createElement('li');
+      item.className = 'library-cards__item';
+
+      const card = document.createElement('div');
+      card.className = 'library-card library-card--skeleton is-skeleton';
+      item.append(card);
+      list.append(item);
+    }
+
+    const status = document.createElement('p');
+    status.className = 'visually-hidden';
+    status.textContent = 'Loading games';
+
+    const wrap = document.createElement('div');
+    wrap.append(status, list);
+
+    return wrap;
+  }
+
+  private createCard(game: GameCard): HTMLLIElement {
     const item = document.createElement('li');
     item.className = 'library-cards__item';
 
@@ -58,7 +159,7 @@ export class LibraryCards {
 
     const cover = document.createElement('img');
     cover.className = 'library-card__cover';
-    cover.src = game.image;
+    cover.src = publicAssetUrl(game.cardImage);
     cover.alt = '';
 
     card.append(cover, this.createBody(game));
@@ -67,7 +168,7 @@ export class LibraryCards {
     return item;
   }
 
-  private createBody(game: LibraryGame): HTMLElement {
+  private createBody(game: GameCard): HTMLElement {
     const body = document.createElement('div');
     body.className = 'library-card__body';
 
@@ -80,7 +181,7 @@ export class LibraryCards {
 
     const badge = document.createElement('span');
     badge.className = 'library-card__badge';
-    badge.textContent = game.categoryLabel;
+    badge.textContent = categoryLabel(game.category);
 
     heading.append(title, badge);
 
@@ -94,19 +195,21 @@ export class LibraryCards {
 
     const text = document.createElement('p');
     text.className = 'library-card__text';
-    text.textContent = game.description;
+    text.textContent = game.shortDescription;
 
-    body.append(heading, price, text, this.createStats(game), this.createDetails(game.name));
+    body.append(heading, price, text, this.createStats(game), this.createDetails(game));
 
     return body;
   }
 
-  private createStats(game: LibraryGame): HTMLElement {
+  private createStats(game: GameCard): HTMLElement {
     const stats = document.createElement('div');
     stats.className = 'library-card__stats';
+    const rating = formatRating(game.rating);
+    const likes = formatCompactCount(game.likesCount);
     stats.append(
-      this.createStat(starUrl, game.rating, 'Rating'),
-      this.createStat(heartUrl, game.likes, 'Likes'),
+      this.createStat(starUrl, rating, 'Rating'),
+      this.createStat(heartUrl, likes, 'Likes'),
     );
 
     return stats;
@@ -129,14 +232,19 @@ export class LibraryCards {
     return stat;
   }
 
-  private createDetails(name: string): HTMLButtonElement {
+  private createDetails(game: GameCard): HTMLButtonElement {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'library-card__details';
     button.dataset.gameDetails = '';
+    button.dataset.gameSlug = game.slug;
     button.textContent = 'Details';
-    button.setAttribute('aria-label', `Details for ${name}`);
+    button.setAttribute('aria-label', `Details for ${game.name}`);
 
     return button;
   }
+}
+
+function categoryLabel(slug: string): string {
+  return categoriesFile.data.find((item) => item.slug === slug)?.label ?? slug;
 }
