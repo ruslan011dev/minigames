@@ -10,3 +10,7 @@ export function formatCompactCount(count: number): string {
 export function formatRating(rating: number): string {
   return rating.toFixed(1);
 }
+
+export function formatScore(score: number): string {
+  return score.toLocaleString('en-US');
+}
