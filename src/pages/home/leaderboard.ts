@@ -1,7 +1,12 @@
-type Player = {
+import { ApiError, isAbortError } from '../../api/client';
+import { getLeaderboard, type LeaderboardPlayer } from '../../api/leaderboard';
+import { createEmptyState, createErrorBanner } from '../../components/feedback/feedback';
+import { snackbar } from '../../components/snackbar/snackbar';
+import { formatCompactCount, formatScore } from '../../utils/format';
+
+type PlayerRow = {
   rank: number;
   name: string;
-  nameShort: string;
   initials: string;
   games: string;
   score: string;
@@ -11,77 +16,175 @@ type Player = {
   favorite: string;
 };
 
-const PLAYERS: Player[] = [
-  {
-    rank: 1,
-    name: 'Alex_Pro99',
-    nameShort: 'Alex_Pro99',
-    initials: 'AP',
-    games: '142',
-    score: '94,250',
-    scoreShort: '94.2K',
-    streak: '12 days',
-    streakShort: '12d',
-    favorite: 'Heartopia',
-  },
-  {
-    rank: 2,
-    name: 'CozyGamer_x',
-    nameShort: 'CozyGamer',
-    initials: 'CG',
-    games: '118',
-    score: '81,400',
-    scoreShort: '81.4K',
-    streak: '8 days',
-    streakShort: '8d',
-    favorite: 'Cat Mail Co.',
-  },
-  {
-    rank: 3,
-    name: 'MatchMaster',
-    nameShort: 'MatchMaster',
-    initials: 'MM',
-    games: '98',
-    score: '72,110',
-    scoreShort: '72.1K',
-    streak: '5 days',
-    streakShort: '5d',
-    favorite: 'Tiny Glade',
-  },
-  {
-    rank: 4,
-    name: 'BubblePop',
-    nameShort: 'BubblePop',
-    initials: 'BP',
-    games: '87',
-    score: '65,900',
-    scoreShort: '65.9K',
-    streak: '3 days',
-    streakShort: '3d',
-    favorite: 'Whisper of the House',
-  },
-  {
-    rank: 5,
-    name: 'SudokuGod',
-    nameShort: 'SudokuGod',
-    initials: 'SG',
-    games: '74',
-    score: '59,320',
-    scoreShort: '59.3K',
-    streak: '2 days',
-    streakShort: '2d',
-    favorite: 'Cat Chess',
-  },
-];
+const SKELETON_ROWS = 5;
+const SKELETON_COLUMNS = ['', 'player', 'games', 'score', '', 'favorite'] as const;
 
 export class Leaderboard {
+  private panel: HTMLElement | null = null;
+  private controller: AbortController | null = null;
+  private alive = true;
+  private hadError = false;
+
   public render(): HTMLElement {
     const section = document.createElement('section');
     section.className = 'leaderboard';
     section.setAttribute('aria-labelledby', 'leaderboard-title');
-    section.append(this.createHeader(), this.createTable());
+
+    const panel = document.createElement('div');
+    panel.className = 'leaderboard__panel';
+    this.panel = panel;
+
+    section.append(this.createHeader(), panel);
+    this.showLoading();
+    void this.load();
 
     return section;
+  }
+
+  public destroy(): void {
+    this.alive = false;
+    this.controller?.abort();
+  }
+
+  private load = async (): Promise<void> => {
+    this.controller?.abort();
+    const controller = new AbortController();
+    this.controller = controller;
+    this.showLoading();
+
+    try {
+      const players = await getLeaderboard(controller.signal);
+
+      if (!this.alive || controller.signal.aborted) {
+        return;
+      }
+
+      if (players.length === 0) {
+        this.showEmpty();
+        snackbar.show('No leaderboard results right now.', 'warning');
+        return;
+      }
+
+      this.showPlayers(players);
+
+      if (this.hadError) {
+        this.hadError = false;
+        snackbar.show('Leaderboard loaded.', 'success');
+      }
+    } catch (error) {
+      if (!this.alive || isAbortError(error)) {
+        return;
+      }
+
+      this.hadError = true;
+      const message = error instanceof ApiError ? error.message : 'Could not load the leaderboard.';
+      this.showError(message);
+      snackbar.show(message, 'error');
+    }
+  };
+
+  private showLoading(): void {
+    if (!this.panel) {
+      return;
+    }
+
+    this.panel.setAttribute('aria-busy', 'true');
+    this.panel.replaceChildren(this.createSkeleton());
+  }
+
+  private showError(message: string): void {
+    if (!this.panel) {
+      return;
+    }
+
+    this.panel.removeAttribute('aria-busy');
+    this.panel.replaceChildren(
+      createErrorBanner(message, () => {
+        void this.load();
+      }),
+    );
+  }
+
+  private showEmpty(): void {
+    if (!this.panel) {
+      return;
+    }
+
+    this.panel.removeAttribute('aria-busy');
+    this.panel.replaceChildren(
+      createEmptyState('No players yet', 'Top scores will show up here when players finish games.'),
+    );
+  }
+
+  private showPlayers(players: LeaderboardPlayer[]): void {
+    if (!this.panel) {
+      return;
+    }
+
+    this.panel.removeAttribute('aria-busy');
+    this.panel.replaceChildren(this.createTable(players.map((player) => this.toRow(player))));
+  }
+
+  private createSkeleton(): HTMLElement {
+    const table = document.createElement('table');
+    table.className = 'leaderboard__table';
+    table.setAttribute('aria-hidden', 'true');
+    table.append(this.createHead(), this.createSkeletonBody());
+
+    const status = document.createElement('p');
+    status.className = 'visually-hidden';
+    status.textContent = 'Loading top players';
+
+    const wrap = document.createElement('div');
+    wrap.append(status, table);
+
+    return wrap;
+  }
+
+  private createSkeletonBody(): HTMLTableSectionElement {
+    const tbody = document.createElement('tbody');
+
+    for (let index = 0; index < SKELETON_ROWS; index += 1) {
+      const row = document.createElement('tr');
+
+      if (index >= 3) {
+        row.className = 'leaderboard__row--extra';
+      }
+
+      SKELETON_COLUMNS.forEach((extraClass) => {
+        const cell = document.createElement('td');
+
+        if (extraClass) {
+          cell.className = `leaderboard__col--${extraClass}`;
+        }
+
+        const bar = document.createElement('span');
+        bar.className = 'leaderboard__skeleton-bar is-skeleton';
+        cell.append(bar);
+        row.append(cell);
+      });
+
+      tbody.append(row);
+    }
+
+    return tbody;
+  }
+
+  private toRow(player: LeaderboardPlayer): PlayerRow {
+    const streak = formatStreak(player.streakDays);
+    const prefix = player.rank === 1 ? '🔥 ' : '';
+
+    return {
+      rank: player.rank,
+      name: player.playerName,
+      initials: playerInitials(player.playerName),
+      games: String(player.gamesPlayed),
+      score: formatScore(player.totalScore),
+      scoreShort: formatCompactCount(player.totalScore),
+      streak: `${prefix}${streak.full}`,
+      streakShort: `${prefix}${streak.short}`,
+      favorite: player.favoriteGameName,
+    };
   }
 
   private createHeader(): HTMLElement {
@@ -101,12 +204,11 @@ export class Leaderboard {
     return header;
   }
 
-  private createTable(): HTMLTableElement {
+  private createTable(players: PlayerRow[]): HTMLTableElement {
     const table = document.createElement('table');
     table.className = 'leaderboard__table';
-
     table.setAttribute('aria-labelledby', 'leaderboard-title');
-    table.append(this.createHead(), this.createBody());
+    table.append(this.createHead(), this.createBody(players));
 
     return table;
   }
@@ -166,17 +268,17 @@ export class Leaderboard {
     return fragment;
   }
 
-  private createBody(): HTMLTableSectionElement {
+  private createBody(players: PlayerRow[]): HTMLTableSectionElement {
     const tbody = document.createElement('tbody');
 
-    PLAYERS.forEach((player) => {
+    players.forEach((player) => {
       tbody.append(this.createRow(player));
     });
 
     return tbody;
   }
 
-  private createRow(player: Player): HTMLTableRowElement {
+  private createRow(player: PlayerRow): HTMLTableRowElement {
     const row = document.createElement('tr');
 
     if (player.rank > 3) {
@@ -206,7 +308,7 @@ export class Leaderboard {
     return td;
   }
 
-  private createPlayerCell(player: Player): HTMLTableCellElement {
+  private createPlayerCell(player: PlayerRow): HTMLTableCellElement {
     const td = document.createElement('td');
     td.className = 'leaderboard__col--player';
 
@@ -220,7 +322,7 @@ export class Leaderboard {
 
     const name = document.createElement('span');
     name.className = 'leaderboard__name';
-    name.append(this.createPair(player.name, player.nameShort));
+    name.append(this.createPair(player.name, player.name));
 
     wrap.append(avatar, name);
     td.append(wrap);
@@ -228,7 +330,7 @@ export class Leaderboard {
     return td;
   }
 
-  private createScoreCell(player: Player): HTMLTableCellElement {
+  private createScoreCell(player: PlayerRow): HTMLTableCellElement {
     const td = document.createElement('td');
     td.className = 'leaderboard__col--score';
     td.append(this.createPair(player.score, player.scoreShort));
@@ -236,10 +338,9 @@ export class Leaderboard {
     return td;
   }
 
-  private createStreakCell(player: Player): HTMLTableCellElement {
+  private createStreakCell(player: PlayerRow): HTMLTableCellElement {
     const td = document.createElement('td');
-    const prefix = player.rank === 1 ? '🔥 ' : '';
-    td.append(this.createPair(`${prefix}${player.streak}`, `${prefix}${player.streakShort}`));
+    td.append(this.createPair(player.streak, player.streakShort));
 
     return td;
   }
@@ -256,4 +357,30 @@ export class Leaderboard {
 
     return td;
   }
+}
+
+function formatStreak(days: number): { full: string; short: string } {
+  const unit = days === 1 ? 'day' : 'days';
+
+  return {
+    full: `${days} ${unit}`,
+    short: `${days}d`,
+  };
+}
+
+function playerInitials(name: string): string {
+  const parts = name
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .split(/[^A-Za-z0-9]+/)
+    .filter((part) => part.length > 1 && /[A-Za-z]/.test(part));
+
+  if (parts.length === 0) {
+    const letters = name.replace(/[^A-Za-z]/g, '');
+    return (letters.slice(0, 2) || '?').toUpperCase();
+  }
+
+  return parts
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('');
 }

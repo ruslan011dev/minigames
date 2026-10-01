@@ -6,6 +6,7 @@ import { NewGames } from './new-games';
 
 export class HomePage implements Page {
   private readonly slider = new NewGames();
+  private readonly leaderboard = new Leaderboard();
 
   public render(): HTMLElement {
     const page = document.createElement('div');
@@ -14,7 +15,7 @@ export class HomePage implements Page {
     page.append(
       new Hero().render(),
       this.slider.render(),
-      new Leaderboard().render(),
+      this.leaderboard.render(),
       new DeveloperCta().render(),
     );
 
@@ -23,5 +24,6 @@ export class HomePage implements Page {
 
   public destroy(): void {
     this.slider.destroy();
+    this.leaderboard.destroy();
   }
 }

@@ -233,3 +233,19 @@
     display: inline;
   }
 }
+
+.leaderboard__panel {
+  min-height: $spacing-4xl;
+
+  .feedback-banner,
+  .feedback-empty {
+    margin-inline: 0;
+  }
+}
+
+.leaderboard__skeleton-bar {
+  display: block;
+  width: 100%;
+  height: $spacing-md;
+  border-radius: $radius-sm;
+}
