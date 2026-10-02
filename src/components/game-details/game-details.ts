@@ -30,6 +30,7 @@ const FAVORITE_REMOVE = 'Remove from Favorites';
 
 export class GameDetailsDialog {
   private dialog: HTMLDialogElement | null = null;
+  private userClose = false;
   private panel: HTMLElement | null = null;
   private favoriteButton: HTMLButtonElement | null = null;
   private favoriteLabel: HTMLElement | null = null;
@@ -47,6 +48,8 @@ export class GameDetailsDialog {
   private hadError = false;
   private hadCommentsError = false;
 
+  constructor(private readonly onDismiss?: () => void) {}
+
   public render(): HTMLDialogElement {
     const dialog = document.createElement('dialog');
     dialog.className = 'details';
@@ -57,14 +60,18 @@ export class GameDetailsDialog {
     this.panel = panel;
     dialog.append(panel, this.createClose());
     dialog.addEventListener('click', this.onDialogClick);
+    dialog.addEventListener('cancel', this.onDialogCancel);
     dialog.addEventListener('close', this.onDialogClose);
-    dialog.addEventListener('cancel', this.onDialogClose);
     this.dialog = dialog;
 
     return dialog;
   }
 
   public open(slug: string): void {
+    if (this.dialog?.open && this.slug === slug) {
+      return;
+    }
+
     this.slug = slug;
 
     if (!this.dialog?.open) {
@@ -79,9 +86,16 @@ export class GameDetailsDialog {
       return;
     }
 
-    this.controller?.abort();
-    this.commentsController?.abort();
-    this.resetTransientState();
+    this.userClose = true;
+    this.dialog.close();
+    this.emitDismiss();
+  }
+
+  public dismiss(): void {
+    if (!this.dialog?.open) {
+      return;
+    }
+
     this.dialog.close();
   }
 
@@ -675,11 +689,25 @@ export class GameDetailsDialog {
     }
   }
 
+  private onDialogCancel = (): void => {
+    this.userClose = true;
+  };
+
   private onDialogClose = (): void => {
     this.controller?.abort();
     this.commentsController?.abort();
     this.resetTransientState();
+    this.emitDismiss();
   };
+
+  private emitDismiss(): void {
+    if (!this.userClose) {
+      return;
+    }
+
+    this.userClose = false;
+    this.onDismiss?.();
+  }
 
   private resetTransientState(): void {
     this.setFavorite(false);

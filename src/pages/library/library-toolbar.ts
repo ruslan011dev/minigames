@@ -4,9 +4,10 @@ import { ApiError, isAbortError } from '../../api/client';
 import { getCategories, type Category } from '../../api/categories';
 import { createEmptyState, createErrorBanner } from '../../components/feedback/feedback';
 import { snackbar } from '../../components/snackbar/snackbar';
+import { DEFAULT_LIBRARY_SORT, type LibrarySort } from './library-query';
 
 type SortOption = {
-  id: string;
+  id: LibrarySort;
   label: string;
 };
 
@@ -17,7 +18,7 @@ const SORT_OPTIONS: SortOption[] = [
   { id: 'name-desc', label: 'Name Z→A' },
 ];
 
-const DEFAULT_SORT = 'rating-desc';
+const DEFAULT_SORT = DEFAULT_LIBRARY_SORT;
 const SKELETON_CHIPS = 4;
 
 export type LibraryQuery = {
@@ -38,7 +39,30 @@ export class LibraryToolbar {
   private alive = true;
   private hadError = false;
 
-  constructor(private readonly onChange?: (query: LibraryQuery) => void) {}
+  constructor(
+    initial: LibraryQuery,
+    private readonly onChange?: (query: LibraryQuery) => void,
+  ) {
+    this.activeCategory = initial.category;
+    this.activeSort = initial.sort;
+  }
+
+  public setQuery(query: LibraryQuery): void {
+    this.activeCategory = query.category;
+    this.activeSort = query.sort;
+    this.filters?.querySelectorAll<HTMLButtonElement>('.library-chip').forEach((chip) => {
+      this.markChip(chip, chip.dataset.category === query.category);
+    });
+    this.sortMenu
+      ?.querySelectorAll<HTMLButtonElement>('.library-sort__option')
+      .forEach((option) => {
+        this.markSortOption(option, option.dataset.sort === query.sort);
+      });
+
+    if (this.sortLabel) {
+      this.sortLabel.textContent = this.sortText();
+    }
+  }
 
   public getQuery(): LibraryQuery {
     return {
@@ -101,9 +125,7 @@ export class LibraryToolbar {
         return;
       }
 
-      this.activeCategory = categories.find((item) => item.isDefault)?.slug ?? 'all';
       this.renderChips();
-      this.emit();
 
       if (this.hadError) {
         this.hadError = false;
