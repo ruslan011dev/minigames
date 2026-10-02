@@ -6,11 +6,13 @@ import {
 } from '../pages/library/library-query';
 import type { PageId } from '../types/page';
 
+export type AppPage = PageId | 'not-found';
+
 export type RouteDialog =
   { kind: 'none' } | { kind: 'game'; slug: string } | { kind: 'auth'; mode: AuthMode };
 
 export type AppLocation = {
-  page: PageId;
+  page: AppPage;
   category: string;
   sort: string;
   pageNumber: number;
@@ -34,7 +36,13 @@ export class Router {
 
   public start(): void {
     window.addEventListener('popstate', this.onPop);
-    const next = readLocation() ?? homeLocation();
+    const next = readLocation();
+
+    if (!next) {
+      this.showMissing();
+      return;
+    }
+
     this.location = next;
     this.remember(next);
     this.onChange(next);
@@ -81,12 +89,26 @@ export class Router {
     const next = readLocation();
 
     if (!next) {
+      this.showMissing();
       return;
     }
 
     this.location = next;
     this.onChange(next);
   };
+
+  private showMissing(): void {
+    this.location = {
+      page: 'not-found',
+      category: DEFAULT_LIBRARY_CATEGORY,
+      sort: DEFAULT_LIBRARY_SORT,
+      pageNumber: 1,
+      dialog: { kind: 'none' },
+    };
+    const current = `${window.location.pathname}${window.location.search}`;
+    window.history.replaceState(null, '', current);
+    this.onChange(this.location);
+  }
 }
 
 function readLocation(): AppLocation | null {
