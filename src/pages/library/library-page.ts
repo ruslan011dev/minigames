@@ -1,32 +1,39 @@
 import type { Page } from '../../types/page';
-import { libraryPageCount } from './library-catalog';
 import { LibraryCards } from './library-cards';
 import { LibraryPagination } from './library-pagination';
 import { LibraryToolbar } from './library-toolbar';
-
-const INITIAL_PAGE_COUNT = libraryPageCount('all');
 
 export class LibraryPage implements Page {
   private toolbar: LibraryToolbar | null = null;
   private cards: LibraryCards | null = null;
   private pagination: LibraryPagination | null = null;
+  private pageNumber = 1;
+  private totalPages = 1;
 
   public render(): HTMLElement {
     const page = document.createElement('div');
     page.className = 'page page--library';
 
-    this.cards = new LibraryCards();
-    this.toolbar = new LibraryToolbar((query) => {
-      this.pagination?.setState(1, INITIAL_PAGE_COUNT);
-      this.cards?.load(query);
+    this.cards = new LibraryCards((result) => {
+      this.pageNumber = result.page;
+      this.totalPages = result.totalPages;
+      this.pagination?.setState(result.page, result.totalPages);
     });
-    this.pagination = new LibraryPagination(() => undefined);
+    this.toolbar = new LibraryToolbar((query) => {
+      this.pageNumber = 1;
+      this.pagination?.setState(1, this.totalPages);
+      this.cards?.load({ ...query, page: 1 });
+    });
+    this.pagination = new LibraryPagination((pageNumber) => {
+      this.pageNumber = pageNumber;
+      this.loadGames();
+    });
 
     page.append(
       this.createIntro(),
       this.toolbar.render(),
       this.cards.render(),
-      this.pagination.render(INITIAL_PAGE_COUNT),
+      this.pagination.render(this.totalPages),
     );
 
     return page;
@@ -35,9 +42,20 @@ export class LibraryPage implements Page {
   public destroy(): void {
     this.cards?.destroy();
     this.toolbar?.destroy();
+    this.pagination?.destroy();
     this.toolbar = null;
     this.cards = null;
     this.pagination = null;
+  }
+
+  private loadGames(): void {
+    const query = this.toolbar?.getQuery();
+
+    if (!query) {
+      return;
+    }
+
+    this.cards?.load({ ...query, page: this.pageNumber });
   }
 
   private createIntro(): HTMLElement {

@@ -5,6 +5,7 @@ import {
   getLibraryGames,
   LIBRARY_PAGE_SIZE,
   type GameCard,
+  type LibraryGamesPage,
   type LibraryGamesQuery,
 } from '../../api/games';
 import { createEmptyState, createErrorBanner } from '../../components/feedback/feedback';
@@ -16,9 +17,11 @@ import { publicAssetUrl } from '../../utils/media';
 export class LibraryCards {
   private panel: HTMLElement | null = null;
   private controller: AbortController | null = null;
-  private query: LibraryGamesQuery = { category: 'all', sort: 'rating-desc' };
+  private query: LibraryGamesQuery = { category: 'all', sort: 'rating-desc', page: 1 };
   private alive = true;
   private hadError = false;
+
+  constructor(private readonly onResult?: (result: LibraryGamesPage) => void) {}
 
   public render(): HTMLElement {
     const section = document.createElement('section');
@@ -57,19 +60,21 @@ export class LibraryCards {
     this.showLoading();
 
     try {
-      const games = await getLibraryGames(this.query, controller.signal);
+      const result = await getLibraryGames(this.query, controller.signal);
 
       if (!this.alive || controller.signal.aborted) {
         return;
       }
 
-      if (games.length === 0) {
+      this.onResult?.(result);
+
+      if (result.games.length === 0) {
         this.showEmpty();
         snackbar.show('No games to show right now.', 'warning');
         return;
       }
 
-      this.showGames(games);
+      this.showGames(result.games);
 
       if (this.hadError) {
         this.hadError = false;
@@ -115,12 +120,7 @@ export class LibraryCards {
     }
 
     this.panel.removeAttribute('aria-busy');
-    this.panel.replaceChildren(
-      createEmptyState(
-        'No games found',
-        'Games will show up here when the library has titles to browse.',
-      ),
-    );
+    this.panel.replaceChildren(createEmptyState('Data Not Found', 'No games match this page.'));
   }
 
   private showGames(games: GameCard[]): void {

@@ -25,12 +25,6 @@ $color-page-current: #3c376e;
   }
 }
 
-.library-pagination__item--compact-hidden {
-  @include mobile-down {
-    display: none;
-  }
-}
-
 .library-pagination__button {
   display: flex;
   align-items: center;
