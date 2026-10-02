@@ -4,6 +4,7 @@ import { Footer } from '../components/footer/footer';
 import { Header } from '../components/header/header';
 import { snackbar } from '../components/snackbar/snackbar';
 import { HomePage } from '../pages/home/home-page';
+import { NotFoundPage } from '../pages/not-found/not-found-page';
 import { DEFAULT_LIBRARY_CATEGORY, DEFAULT_LIBRARY_SORT } from '../pages/library/library-query';
 import { LibraryPage, type LibraryLocation } from '../pages/library/library-page';
 import { homeLocation, Router, type AppLocation } from '../router/router';
@@ -16,7 +17,7 @@ export class App {
   private currentPage: Page | null = null;
   private library: LibraryPage | null = null;
   private libraryKey = '';
-  private pageId: PageId = 'home';
+  private pageId: PageId | 'not-found' = 'home';
   private header: Header | null = null;
   private auth: AuthDialog | null = null;
   private details: GameDetailsDialog | null = null;
@@ -151,6 +152,22 @@ export class App {
   }
 
   private syncPage(location: AppLocation): void {
+    if (location.page === 'not-found') {
+      this.header?.setCurrentPage(null);
+
+      if (this.currentPage && this.pageId === 'not-found') {
+        return;
+      }
+
+      this.pageId = 'not-found';
+      this.library = null;
+      this.libraryKey = '';
+      this.header?.dismissMenu();
+      window.scrollTo(0, 0);
+      this.renderPage(new NotFoundPage(() => this.openPage('home')));
+      return;
+    }
+
     const key = `${location.category}|${location.sort}|${location.pageNumber}`;
 
     if (

@@ -1,0 +1,44 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $spacing-md;
+  min-height: $hero-height-mobile;
+  padding-block: clamp($spacing-xl, 6vw, $section-offset-desktop);
+  padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
+}
+
+.not-found__title {
+  margin: 0;
+  font-size: $font-size-section;
+  font-weight: $font-weight-bold;
+}
+
+.not-found__text {
+  margin: 0;
+  color: $color-on-bg;
+  font-size: $font-size-body;
+}
+
+.not-found__home {
+  padding: $btn-padding-y $btn-padding-x;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-lg;
+  background-color: $color-primary;
+  color: $color-on-primary;
+  font-family: $font-main;
+  font-size: $font-size-body-sm;
+  font-weight: $font-weight-bold;
+  cursor: pointer;
+
+  @include hover {
+    background-color: $color-primary-hover;
+  }
+
+  &:active {
+    background-color: $color-primary-active;
+  }
+}

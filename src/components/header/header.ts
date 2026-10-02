@@ -43,7 +43,7 @@ export class Header {
     return header;
   }
 
-  public setCurrentPage(page: PageId): void {
+  public setCurrentPage(page: PageId | null): void {
     this.root?.querySelectorAll<HTMLAnchorElement>('[data-nav]').forEach((link) => {
       if (link.dataset.nav === page) {
         link.setAttribute('aria-current', 'page');
