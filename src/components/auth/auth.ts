@@ -9,12 +9,19 @@ export type AuthMode = 'login' | 'register';
 
 export class AuthDialog {
   private dialog: HTMLDialogElement | null = null;
+  private mode: AuthMode = 'login';
+  private userClose = false;
   private loginTab: HTMLButtonElement | null = null;
   private registerTab: HTMLButtonElement | null = null;
   private loginPanel: HTMLElement | null = null;
   private registerPanel: HTMLElement | null = null;
   private passwordInput: HTMLInputElement | null = null;
   private passwordToggle: HTMLButtonElement | null = null;
+
+  constructor(
+    private readonly onDismiss?: () => void,
+    private readonly onModeChange?: (mode: AuthMode) => void,
+  ) {}
 
   public render(): HTMLDialogElement {
     this.dialog = document.createElement('dialog');
@@ -26,6 +33,8 @@ export class AuthDialog {
     this.registerPanel = this.createRegisterPanel();
 
     this.dialog.append(switcher, this.loginPanel, this.registerPanel);
+    this.dialog.addEventListener('cancel', this.onDialogCancel);
+    this.dialog.addEventListener('close', this.onDialogClose);
     this.bindEvents();
     this.setMode('login');
 
@@ -40,9 +49,21 @@ export class AuthDialog {
   }
 
   public close(): void {
-    if (this.dialog?.open) {
-      this.dialog.close();
+    if (!this.dialog?.open) {
+      return;
     }
+
+    this.userClose = true;
+    this.dialog.close();
+    this.emitDismiss();
+  }
+
+  public dismiss(): void {
+    if (!this.dialog?.open) {
+      return;
+    }
+
+    this.dialog.close();
   }
 
   private createSwitcher(): HTMLDivElement {
@@ -363,7 +384,7 @@ export class AuthDialog {
     action.className = 'auth__link';
     action.dataset.mode = mode;
     action.textContent = actionLabel;
-    action.addEventListener('click', () => this.setMode(mode));
+    action.addEventListener('click', () => this.chooseMode(mode));
 
     footer.append(action);
 
@@ -371,8 +392,8 @@ export class AuthDialog {
   }
 
   private bindEvents(): void {
-    this.loginTab?.addEventListener('click', () => this.setMode('login'));
-    this.registerTab?.addEventListener('click', () => this.setMode('register'));
+    this.loginTab?.addEventListener('click', () => this.chooseMode('login'));
+    this.registerTab?.addEventListener('click', () => this.chooseMode('register'));
     this.passwordToggle?.addEventListener('click', this.togglePassword);
     this.dialog?.addEventListener('click', this.onBackdropClick);
 
@@ -383,7 +404,34 @@ export class AuthDialog {
       });
   }
 
+  private chooseMode(mode: AuthMode): void {
+    if (this.mode === mode) {
+      return;
+    }
+
+    this.setMode(mode);
+    this.onModeChange?.(mode);
+  }
+
+  private onDialogCancel = (): void => {
+    this.userClose = true;
+  };
+
+  private onDialogClose = (): void => {
+    this.emitDismiss();
+  };
+
+  private emitDismiss(): void {
+    if (!this.userClose) {
+      return;
+    }
+
+    this.userClose = false;
+    this.onDismiss?.();
+  }
+
   private setMode(mode: AuthMode): void {
+    this.mode = mode;
     const isLogin = mode === 'login';
 
     this.loginTab?.classList.toggle('auth__tab--active', isLogin);
