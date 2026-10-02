@@ -35,18 +35,25 @@ export async function getFeaturedGames(signal?: AbortSignal): Promise<GameSummar
 export type LibraryGamesQuery = {
   category: string;
   sort: string;
+  page: number;
+};
+
+export type LibraryGamesPage = {
+  games: GameCard[];
+  page: number;
+  totalPages: number;
 };
 
 export async function getLibraryGames(
   query: LibraryGamesQuery,
   signal?: AbortSignal,
-): Promise<GameCard[]> {
+): Promise<LibraryGamesPage> {
   const body = await apiGet(
     '/api/games',
     {
       category: query.category,
       sort: query.sort,
-      page: '1',
+      page: String(query.page),
       limit: String(LIBRARY_PAGE_SIZE),
     },
     signal,
@@ -56,13 +63,28 @@ export async function getLibraryGames(
     throw new ApiError('Unexpected response from the server.', 0);
   }
 
-  return body.data.map((item) => {
-    if (!isGameCard(item)) {
-      throw new ApiError('Unexpected response from the server.', 0);
-    }
+  return {
+    games: body.data.map((item) => {
+      if (!isGameCard(item)) {
+        throw new ApiError('Unexpected response from the server.', 0);
+      }
 
-    return item;
-  });
+      return item;
+    }),
+    ...readPageMeta(body.meta),
+  };
+}
+
+function readPageMeta(value: unknown): { page: number; totalPages: number } {
+  if (!isRecord(value)) {
+    return { page: 1, totalPages: 1 };
+  }
+
+  const page = typeof value.page === 'number' && value.page >= 1 ? value.page : 1;
+  const totalPages =
+    typeof value.totalPages === 'number' && value.totalPages >= 1 ? value.totalPages : 1;
+
+  return { page, totalPages };
 }
 
 function isGameCard(value: unknown): value is GameCard {
