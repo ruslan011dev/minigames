@@ -75,6 +75,42 @@ export async function getLibraryGames(
   };
 }
 
+export type GameRecord = {
+  position: number;
+  playerName: string;
+  score: number;
+  achievedAt: string;
+};
+
+export type GameSpecs = {
+  genre: string;
+  players: string;
+  duration: string;
+  price: string;
+};
+
+export type GameDetails = {
+  slug: string;
+  name: string;
+  heroImage: string;
+  rating: number;
+  likesCount: number;
+  isLikedByCurrentUser: boolean;
+  fullDescription: string;
+  specs: GameSpecs;
+  topRecords: GameRecord[];
+};
+
+export async function getGame(slug: string, signal?: AbortSignal): Promise<GameDetails> {
+  const body = await apiGet(`/api/games/${encodeURIComponent(slug)}`, undefined, signal);
+
+  if (!isRecord(body) || !isGameDetails(body.data)) {
+    throw new ApiError('Unexpected response from the server.', 0);
+  }
+
+  return body.data;
+}
+
 function readPageMeta(value: unknown): { page: number; totalPages: number } {
   if (!isRecord(value)) {
     return { page: 1, totalPages: 1 };
@@ -101,6 +137,49 @@ function isGameCard(value: unknown): value is GameCard {
     typeof value.rating === 'number' &&
     typeof value.likesCount === 'number' &&
     typeof value.cardImage === 'string'
+  );
+}
+
+function isGameDetails(value: unknown): value is GameDetails {
+  if (!isRecord(value) || !isGameSpecs(value.specs) || !Array.isArray(value.topRecords)) {
+    return false;
+  }
+
+  return (
+    typeof value.slug === 'string' &&
+    typeof value.name === 'string' &&
+    typeof value.heroImage === 'string' &&
+    typeof value.rating === 'number' &&
+    typeof value.likesCount === 'number' &&
+    typeof value.isLikedByCurrentUser === 'boolean' &&
+    typeof value.fullDescription === 'string' &&
+    value.topRecords.every((item) => isGameRecord(item))
+  );
+}
+
+function isGameSpecs(value: unknown): value is GameSpecs {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.genre === 'string' &&
+    typeof value.players === 'string' &&
+    typeof value.duration === 'string' &&
+    typeof value.price === 'string'
+  );
+}
+
+function isGameRecord(value: unknown): value is GameRecord {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.position === 'number' &&
+    typeof value.playerName === 'string' &&
+    typeof value.score === 'number' &&
+    typeof value.achievedAt === 'string'
   );
 }
 

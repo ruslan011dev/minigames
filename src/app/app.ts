@@ -65,8 +65,15 @@ export class App {
       return;
     }
 
-    if (target.closest('[data-game-details]')) {
-      this.details?.open();
+    const detailsTrigger = target.closest('[data-game-details]');
+
+    if (detailsTrigger instanceof HTMLElement) {
+      const slug = detailsTrigger.dataset.gameSlug;
+
+      if (slug) {
+        this.details?.open(slug);
+      }
+
       return;
     }
 
