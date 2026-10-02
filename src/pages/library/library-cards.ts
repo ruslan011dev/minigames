@@ -1,7 +1,12 @@
 import heartUrl from '../../assets/icons/heart.svg?url';
 import starUrl from '../../assets/icons/star.svg?url';
 import { ApiError, isAbortError } from '../../api/client';
-import { getLibraryGames, LIBRARY_PAGE_SIZE, type GameCard } from '../../api/games';
+import {
+  getLibraryGames,
+  LIBRARY_PAGE_SIZE,
+  type GameCard,
+  type LibraryGamesQuery,
+} from '../../api/games';
 import { createEmptyState, createErrorBanner } from '../../components/feedback/feedback';
 import { snackbar } from '../../components/snackbar/snackbar';
 import categoriesFile from '../../mock-data/categories.json';
@@ -11,6 +16,7 @@ import { publicAssetUrl } from '../../utils/media';
 export class LibraryCards {
   private panel: HTMLElement | null = null;
   private controller: AbortController | null = null;
+  private query: LibraryGamesQuery = { category: 'all', sort: 'rating-desc' };
   private alive = true;
   private hadError = false;
 
@@ -30,9 +36,13 @@ export class LibraryCards {
 
     section.append(title, panel);
     this.showLoading();
-    void this.load();
 
     return section;
+  }
+
+  public load(query: LibraryGamesQuery): void {
+    this.query = query;
+    void this.fetchGames();
   }
 
   public destroy(): void {
@@ -40,14 +50,14 @@ export class LibraryCards {
     this.controller?.abort();
   }
 
-  private load = async (): Promise<void> => {
+  private fetchGames = async (): Promise<void> => {
     this.controller?.abort();
     const controller = new AbortController();
     this.controller = controller;
     this.showLoading();
 
     try {
-      const games = await getLibraryGames(controller.signal);
+      const games = await getLibraryGames(this.query, controller.signal);
 
       if (!this.alive || controller.signal.aborted) {
         return;
@@ -94,7 +104,7 @@ export class LibraryCards {
     this.panel.removeAttribute('aria-busy');
     this.panel.replaceChildren(
       createErrorBanner(message, () => {
-        void this.load();
+        void this.fetchGames();
       }),
     );
   }

@@ -1,12 +1,9 @@
 import checkUrl from '../../assets/icons/check.svg?url';
 import chevronUrl from '../../assets/icons/chevron-down.svg?url';
-import categoriesFile from '../../mock-data/categories.json';
-
-type Category = {
-  slug: string;
-  label: string;
-  isDefault: boolean;
-};
+import { ApiError, isAbortError } from '../../api/client';
+import { getCategories, type Category } from '../../api/categories';
+import { createEmptyState, createErrorBanner } from '../../components/feedback/feedback';
+import { snackbar } from '../../components/snackbar/snackbar';
 
 type SortOption = {
   id: string;
@@ -21,28 +18,32 @@ const SORT_OPTIONS: SortOption[] = [
 ];
 
 const DEFAULT_SORT = 'rating-desc';
+const SKELETON_CHIPS = 4;
 
 export type LibraryQuery = {
   category: string;
-  sort: string | null;
+  sort: string;
 };
 
 export class LibraryToolbar {
-  private readonly categories: Category[] = categoriesFile.data;
-  private activeCategory = this.categories.find((item) => item.isDefault)?.slug ?? 'all';
+  private categories: Category[] = [];
+  private activeCategory = 'all';
   private activeSort = DEFAULT_SORT;
-  private sortTouched = false;
   private open = false;
+  private filters: HTMLElement | null = null;
   private sortButton: HTMLButtonElement | null = null;
   private sortLabel: HTMLElement | null = null;
   private sortMenu: HTMLUListElement | null = null;
+  private controller: AbortController | null = null;
+  private alive = true;
+  private hadError = false;
 
   constructor(private readonly onChange?: (query: LibraryQuery) => void) {}
 
   public getQuery(): LibraryQuery {
     return {
       category: this.activeCategory,
-      sort: this.sortTouched ? this.activeSort : null,
+      sort: this.activeSort,
     };
   }
 
@@ -57,13 +58,15 @@ export class LibraryToolbar {
     title.textContent = 'Filter and sort';
 
     section.append(title, this.createFilters(), this.createSort());
+    void this.loadCategories();
 
     return section;
   }
 
   public destroy(): void {
-    document.removeEventListener('click', this.onDocumentClick);
-    document.removeEventListener('keydown', this.onKeyDown);
+    this.alive = false;
+    this.controller?.abort();
+    this.unbindMenu();
   }
 
   private createFilters(): HTMLElement {
@@ -71,32 +74,133 @@ export class LibraryToolbar {
     group.className = 'library-toolbar__filters';
     group.setAttribute('role', 'group');
     group.setAttribute('aria-label', 'Categories');
-
-    this.categories.forEach((category) => {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'library-chip';
-      chip.textContent = category.label;
-      chip.setAttribute('aria-pressed', String(category.slug === this.activeCategory));
-
-      if (category.slug === this.activeCategory) {
-        chip.classList.add('library-chip--active');
-      }
-
-      chip.addEventListener('click', () => {
-        this.activeCategory = category.slug;
-        group.querySelectorAll<HTMLButtonElement>('.library-chip').forEach((item) => {
-          const selected = item === chip;
-          item.classList.toggle('library-chip--active', selected);
-          item.setAttribute('aria-pressed', String(selected));
-        });
-        this.emit();
-      });
-
-      group.append(chip);
-    });
+    this.filters = group;
+    this.showCategoryLoading();
 
     return group;
+  }
+
+  private loadCategories = async (): Promise<void> => {
+    this.controller?.abort();
+    const controller = new AbortController();
+    this.controller = controller;
+    this.showCategoryLoading();
+
+    try {
+      const categories = await getCategories(controller.signal);
+
+      if (!this.alive || controller.signal.aborted) {
+        return;
+      }
+
+      this.categories = categories;
+
+      if (categories.length === 0) {
+        this.showCategoryEmpty();
+        snackbar.show('No categories right now.', 'warning');
+        return;
+      }
+
+      this.activeCategory = categories.find((item) => item.isDefault)?.slug ?? 'all';
+      this.renderChips();
+      this.emit();
+
+      if (this.hadError) {
+        this.hadError = false;
+        snackbar.show('Categories loaded.', 'success');
+      }
+    } catch (error) {
+      if (!this.alive || isAbortError(error)) {
+        return;
+      }
+
+      this.hadError = true;
+      const message = error instanceof ApiError ? error.message : 'Could not load categories.';
+      this.showCategoryError(message);
+      snackbar.show(message, 'error');
+    }
+  };
+
+  private showCategoryLoading(): void {
+    if (!this.filters) {
+      return;
+    }
+
+    this.filters.setAttribute('aria-busy', 'true');
+    const status = document.createElement('p');
+    status.className = 'visually-hidden';
+    status.textContent = 'Loading categories';
+
+    const chips = document.createDocumentFragment();
+
+    for (let index = 0; index < SKELETON_CHIPS; index += 1) {
+      const chip = document.createElement('span');
+      chip.className = 'library-chip library-chip--skeleton is-skeleton';
+      chip.setAttribute('aria-hidden', 'true');
+      chips.append(chip);
+    }
+
+    this.filters.replaceChildren(status, chips);
+  }
+
+  private showCategoryError(message: string): void {
+    if (!this.filters) {
+      return;
+    }
+
+    this.filters.removeAttribute('aria-busy');
+    this.filters.replaceChildren(
+      createErrorBanner(message, () => {
+        void this.loadCategories();
+      }),
+    );
+  }
+
+  private showCategoryEmpty(): void {
+    if (!this.filters) {
+      return;
+    }
+
+    this.filters.removeAttribute('aria-busy');
+    this.filters.replaceChildren(
+      createEmptyState('No categories', 'Filters will show up here when categories are available.'),
+    );
+  }
+
+  private renderChips(): void {
+    if (!this.filters) {
+      return;
+    }
+
+    this.filters.removeAttribute('aria-busy');
+    this.filters.replaceChildren();
+
+    this.categories.forEach((category) => {
+      this.filters?.append(this.createChip(category));
+    });
+  }
+
+  private createChip(category: Category): HTMLButtonElement {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'library-chip';
+    chip.textContent = category.label;
+    chip.dataset.category = category.slug;
+    this.markChip(chip, category.slug === this.activeCategory);
+    chip.addEventListener('click', () => {
+      this.activeCategory = category.slug;
+      this.filters?.querySelectorAll<HTMLButtonElement>('.library-chip').forEach((item) => {
+        this.markChip(item, item.dataset.category === category.slug);
+      });
+      this.emit();
+    });
+
+    return chip;
+  }
+
+  private markChip(chip: HTMLButtonElement, selected: boolean): void {
+    chip.classList.toggle('library-chip--active', selected);
+    chip.setAttribute('aria-pressed', String(selected));
   }
 
   private createSort(): HTMLElement {
@@ -166,7 +270,6 @@ export class LibraryToolbar {
     this.markSortOption(button, option.id === this.activeSort);
     button.addEventListener('click', (event) => {
       event.stopPropagation();
-      this.sortTouched = true;
       this.activeSort = option.id;
       this.sortMenu
         ?.querySelectorAll<HTMLButtonElement>('.library-sort__option')
@@ -213,7 +316,12 @@ export class LibraryToolbar {
       return;
     }
 
-    this.destroy();
+    this.unbindMenu();
+  }
+
+  private unbindMenu(): void {
+    document.removeEventListener('click', this.onDocumentClick);
+    document.removeEventListener('keydown', this.onKeyDown);
   }
 
   private onDocumentClick = (): void => {

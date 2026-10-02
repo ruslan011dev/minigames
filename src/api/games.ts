@@ -32,8 +32,25 @@ export async function getFeaturedGames(signal?: AbortSignal): Promise<GameSummar
   });
 }
 
-export async function getLibraryGames(signal?: AbortSignal): Promise<GameCard[]> {
-  const body = await apiGet('/api/games', { limit: String(LIBRARY_PAGE_SIZE) }, signal);
+export type LibraryGamesQuery = {
+  category: string;
+  sort: string;
+};
+
+export async function getLibraryGames(
+  query: LibraryGamesQuery,
+  signal?: AbortSignal,
+): Promise<GameCard[]> {
+  const body = await apiGet(
+    '/api/games',
+    {
+      category: query.category,
+      sort: query.sort,
+      page: '1',
+      limit: String(LIBRARY_PAGE_SIZE),
+    },
+    signal,
+  );
 
   if (!isRecord(body) || !Array.isArray(body.data)) {
     throw new ApiError('Unexpected response from the server.', 0);

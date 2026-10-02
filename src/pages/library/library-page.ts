@@ -2,35 +2,31 @@ import type { Page } from '../../types/page';
 import { libraryPageCount } from './library-catalog';
 import { LibraryCards } from './library-cards';
 import { LibraryPagination } from './library-pagination';
-import { LibraryToolbar, type LibraryQuery } from './library-toolbar';
+import { LibraryToolbar } from './library-toolbar';
+
+const INITIAL_PAGE_COUNT = libraryPageCount('all');
 
 export class LibraryPage implements Page {
   private toolbar: LibraryToolbar | null = null;
   private cards: LibraryCards | null = null;
   private pagination: LibraryPagination | null = null;
-  private pageNumber = 1;
 
   public render(): HTMLElement {
     const page = document.createElement('div');
     page.className = 'page page--library';
 
-    this.toolbar = new LibraryToolbar((query) => {
-      this.pageNumber = 1;
-      this.showGames(query);
-    });
     this.cards = new LibraryCards();
-    this.pagination = new LibraryPagination((pageNumber) => {
-      this.pageNumber = pageNumber;
-      this.showGames(this.currentQuery());
+    this.toolbar = new LibraryToolbar((query) => {
+      this.pagination?.setState(1, INITIAL_PAGE_COUNT);
+      this.cards?.load(query);
     });
-
-    const query = this.toolbar.getQuery();
+    this.pagination = new LibraryPagination(() => undefined);
 
     page.append(
       this.createIntro(),
       this.toolbar.render(),
       this.cards.render(),
-      this.pagination.render(libraryPageCount(query.category)),
+      this.pagination.render(INITIAL_PAGE_COUNT),
     );
 
     return page;
@@ -42,20 +38,6 @@ export class LibraryPage implements Page {
     this.toolbar = null;
     this.cards = null;
     this.pagination = null;
-  }
-
-  private showGames(query: LibraryQuery): void {
-    const pageCount = libraryPageCount(query.category);
-
-    if (this.pageNumber > pageCount) {
-      this.pageNumber = 1;
-    }
-
-    this.pagination?.setState(this.pageNumber, pageCount);
-  }
-
-  private currentQuery(): LibraryQuery {
-    return this.toolbar?.getQuery() ?? { category: 'all', sort: null };
   }
 
   private createIntro(): HTMLElement {
