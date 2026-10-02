@@ -491,6 +491,12 @@ dialog.details {
   height: $details-hero-height;
 }
 
+.details__comment-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
 .details__skeleton-line {
   height: $spacing-md;
   border-radius: $radius-sm;
