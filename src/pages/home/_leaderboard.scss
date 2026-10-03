@@ -5,24 +5,25 @@
 .leaderboard {
   padding-block: clamp($offset-mobile, 3vw, $spacing-2xl);
   padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
-  overflow-x: auto;
   background-color: $color-bg;
 }
 
 .leaderboard__header {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
+  gap: $spacing-sm;
   margin-bottom: clamp($offset-mobile, 3vw, $spacing-2xl);
 }
 
 .leaderboard__accent {
   display: block;
+  flex-shrink: 0;
+  box-sizing: border-box;
   width: $accent-bar-width;
   height: $spacing-lg;
-  flex-shrink: 0;
+  border: $border-width-accent solid $color-on-primary;
+  border-radius: $radius-xs;
   background-color: $color-primary;
-  border-radius: $radius-sm;
 
   @include desktop-up {
     height: $spacing-xl;
@@ -43,25 +44,41 @@
   table-layout: auto;
   border-collapse: separate;
   border-spacing: 0;
-  background-color: $color-bg;
-  border: $border-width solid $color-on-primary;
+  background-color: $color-white;
+  border: $border-width-auth solid $color-on-primary;
   border-radius: $radius-md;
+  box-shadow: $shadow-offset $shadow-offset 0 0 $color-on-primary;
 
   th,
   td {
-    padding: clamp(12px, 1.4vw, $spacing-lg) clamp($spacing-sm, 1vw, $spacing-md);
+    padding: $spacing-md;
     color: $color-on-primary;
-    font-size: clamp($font-size-label, 1.1vw, $font-size-body-sm);
-    font-weight: $font-weight-medium;
+    font-size: $font-size-body-sm;
     text-align: center;
     vertical-align: middle;
-    border-bottom: $border-width solid $color-on-primary;
   }
 
   th {
     background-color: $color-thead;
-    color: $color-bg;
+    color: $color-white;
+    font-weight: $font-weight-extrabold;
+    text-transform: uppercase;
+    border-bottom: $border-width-accent solid $color-on-primary;
+  }
+
+  td {
     font-weight: $font-weight-bold;
+    border-bottom: $border-width-thin solid $color-outline;
+  }
+
+  @include desktop-up {
+    th {
+      padding: $spacing-lg;
+    }
+
+    td {
+      padding: $spacing-md $spacing-lg;
+    }
   }
 
   thead th:first-child {
@@ -76,6 +93,14 @@
     thead th:nth-child(5) {
       border-top-right-radius: $radius-md;
     }
+  }
+
+  tbody tr:nth-child(odd) {
+    background-color: $color-bg;
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: $color-white;
   }
 
   tr:last-child td {
@@ -105,8 +130,20 @@
   }
 }
 
-.leaderboard__col--player {
+td.leaderboard__col--player {
   text-align: left;
+}
+
+td.leaderboard__col--games {
+  font-weight: $font-weight-semibold;
+}
+
+.leaderboard__table td.leaderboard__rank {
+  font-weight: $font-weight-extrabold;
+}
+
+.leaderboard__table td.leaderboard__rank--top {
+  color: $color-primary;
 }
 
 .leaderboard__col--games,
@@ -135,7 +172,7 @@
 .leaderboard__player {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: calc(#{$spacing-sm} + #{$spacing-xs});
   min-width: 0;
 }
 
@@ -150,13 +187,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp($spacing-lg, 2.5vw, $spacing-2xl);
-  height: clamp($spacing-lg, 2.5vw, $spacing-2xl);
+  width: $spacing-lg;
+  height: $spacing-lg;
   flex-shrink: 0;
-  border: $border-width solid $color-on-primary;
+  border: $border-width-accent solid $color-on-primary;
   border-radius: 50%;
-  font-size: $font-size-label;
+  font-size: $font-size-caption;
   font-weight: $font-weight-bold;
+
+  @include desktop-up {
+    width: $spacing-2xl;
+    height: $spacing-2xl;
+    font-size: $font-size-label;
+  }
 }
 
 .leaderboard__avatar--1 {
@@ -181,10 +224,12 @@
 
 .leaderboard__chip {
   display: inline-flex;
-  padding: $spacing-xs $spacing-sm;
-  border: $border-width solid $color-on-primary;
-  border-radius: $radius-sm;
-  font-size: $font-size-label;
+  padding: $spacing-xs calc(#{$spacing-sm} + #{$spacing-xs});
+  border: $border-width-accent solid $color-on-primary;
+  border-radius: $radius-xl;
+  background-color: $color-bg;
+  font-size: $font-size-caption;
+  font-weight: $font-weight-bold;
   white-space: nowrap;
 }
 

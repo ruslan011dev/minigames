@@ -9,10 +9,10 @@ import arrowRightUrl from '../../assets/icons/arrow-right.svg?url';
 import heartUrl from '../../assets/icons/heart.svg?url';
 import starUrl from '../../assets/icons/star.svg?url';
 
-type CardSize = 'peek' | 'side' | 'active';
+type CardSize = 'peek' | 'side' | 'active' | 'far';
 
 const SWIPE_THRESHOLD = 40;
-const SKELETON_ROLES: CardSize[] = ['peek', 'active', 'peek'];
+const SKELETON_ROLES: CardSize[] = ['peek', 'side', 'active', 'side', 'peek'];
 
 export class NewGames {
   private games: GameSummary[] = [];
@@ -332,6 +332,7 @@ export class NewGames {
         'new-games__card--peek',
         'new-games__card--side',
         'new-games__card--active',
+        'new-games__card--far',
       );
       card.classList.add(`new-games__card--${this.role(delta)}`);
       card.style.order = String(delta + half);
@@ -370,7 +371,11 @@ export class NewGames {
       return 'side';
     }
 
-    return 'peek';
+    if (Math.abs(delta) === 2) {
+      return 'peek';
+    }
+
+    return 'far';
   }
 
   private onKeyDown = (event: KeyboardEvent): void => {
