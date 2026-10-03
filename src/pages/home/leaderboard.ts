@@ -172,7 +172,7 @@ export class Leaderboard {
 
   private toRow(player: LeaderboardPlayer): PlayerRow {
     const streak = formatStreak(player.streakDays);
-    const prefix = player.rank === 1 ? '🔥 ' : '';
+    const prefix = '🔥 ';
 
     return {
       rank: player.rank,
@@ -285,8 +285,15 @@ export class Leaderboard {
       row.className = 'leaderboard__row--extra';
     }
 
+    const rank = this.createCell(`#${player.rank}`);
+    rank.classList.add('leaderboard__rank');
+
+    if (player.rank === 1) {
+      rank.classList.add('leaderboard__rank--top');
+    }
+
     row.append(
-      this.createCell(`#${player.rank}`),
+      rank,
       this.createPlayerCell(player),
       this.createCell(player.games, 'games'),
       this.createScoreCell(player),
