@@ -6,6 +6,7 @@ const DISMISS_MS = 4000;
 
 export class Snackbar {
   private host: HTMLElement | null = null;
+  private home: ParentNode | null = null;
   private hideTimer: number | null = null;
 
   public render(): HTMLElement {
@@ -23,6 +24,12 @@ export class Snackbar {
 
     this.clearTimer();
     this.host.replaceChildren(this.createNotice(message, variant));
+
+    if (variant === 'error') {
+      this.restoreHome();
+    } else {
+      this.liftAboveDialog();
+    }
     this.hideTimer = window.setTimeout(() => {
       this.hide();
     }, DISMISS_MS);
@@ -30,7 +37,13 @@ export class Snackbar {
 
   public hide(): void {
     this.clearTimer();
-    this.host?.replaceChildren();
+
+    if (!this.host) {
+      return;
+    }
+
+    this.host.replaceChildren();
+    this.restoreHome();
   }
 
   private createNotice(message: string, variant: SnackbarVariant): HTMLElement {
@@ -58,6 +71,32 @@ export class Snackbar {
     notice.append(text, close);
 
     return notice;
+  }
+
+  private liftAboveDialog(): void {
+    if (!this.host) {
+      return;
+    }
+
+    this.home ??= this.host.parentNode;
+    const dialog = document.querySelector('dialog[open]');
+
+    if (!dialog) {
+      this.restoreHome();
+      return;
+    }
+
+    if (this.host.parentElement !== dialog) {
+      dialog.append(this.host);
+    }
+  }
+
+  private restoreHome(): void {
+    if (!this.host || !this.home || this.host.parentNode === this.home) {
+      return;
+    }
+
+    this.home.append(this.host);
   }
 
   private clearTimer(): void {
