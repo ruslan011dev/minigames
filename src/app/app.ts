@@ -6,8 +6,8 @@ import { snackbar } from '../components/snackbar/snackbar';
 import { HomePage } from '../pages/home/home-page';
 import { NotFoundPage } from '../pages/not-found/not-found-page';
 import { DEFAULT_LIBRARY_CATEGORY, DEFAULT_LIBRARY_SORT } from '../pages/library/library-query';
-import { LibraryPage, type LibraryLocation } from '../pages/library/library-page';
-import { homeLocation, Router, type AppLocation } from '../router/router';
+import { type LibraryLocation, LibraryPage } from '../pages/library/library-page';
+import { type AppLocation, homeLocation, Router } from '../router/router';
 import { isPageId, type Page, type PageId } from '../types/page';
 
 export class App {
@@ -247,3 +247,4 @@ export class App {
     this.content.replaceChildren(page.render());
   }
 }
+//
