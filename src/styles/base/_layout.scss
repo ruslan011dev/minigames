@@ -17,3 +17,35 @@
 .page {
   width: 100%;
 }
+
+.skip-link {
+  position: absolute;
+  width: $border-width-thin;
+  height: $border-width-thin;
+  margin: calc(#{$border-width-thin} * -1);
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+
+  &:focus {
+    position: fixed;
+    top: $spacing-sm;
+    left: $spacing-sm;
+    z-index: $z-header;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: $spacing-sm $spacing-md;
+    overflow: visible;
+    border: $border-width solid $color-on-primary;
+    border-radius: $radius-sm;
+    background-color: $color-primary;
+    color: $color-on-primary;
+    font-weight: $font-weight-bold;
+    text-decoration: none;
+    clip: auto;
+    white-space: normal;
+  }
+}

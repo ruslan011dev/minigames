@@ -3,11 +3,13 @@
 @use './styles/base/layout';
 @use './components/header/header';
 @use './components/auth/auth';
+@use './components/game-details/details';
 @use './components/footer/footer';
 @use './pages/home/hero';
 @use './pages/home/new-games';
 @use './pages/home/leaderboard';
 @use './pages/home/developer';
+@use './pages/library/library';
 
 * {
   box-sizing: border-box;

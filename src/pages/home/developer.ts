@@ -5,7 +5,7 @@ export class DeveloperCta {
   public render(): HTMLElement {
     const section = document.createElement('section');
     section.className = 'developer';
-    section.setAttribute('aria-label', 'For game developers');
+    section.setAttribute('aria-labelledby', 'developer-title');
 
     const inner = document.createElement('div');
     inner.className = 'developer__inner';
@@ -26,6 +26,7 @@ export class DeveloperCta {
     content.className = 'developer__content';
 
     const title = document.createElement('h2');
+    title.id = 'developer-title';
     title.className = 'developer__title';
     title.textContent = 'Are You a Game Developer?';
 
@@ -36,7 +37,8 @@ export class DeveloperCta {
 
     const cta = document.createElement('a');
     cta.className = 'developer__cta';
-    cta.href = '#';
+    cta.href = '/';
+    cta.dataset.page = 'home';
 
     const icon = document.createElement('img');
     icon.className = 'developer__cta-icon';

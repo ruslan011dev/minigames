@@ -2,6 +2,8 @@
 @use '../../styles/mixins' as *;
 @use '../../styles/breakpoints' as *;
 
+$card-open-layer: 3;
+
 .new-games {
   padding-block: clamp($offset-mobile, 3vw, $spacing-2xl);
   background-color: $color-bg;
@@ -19,7 +21,7 @@
 .new-games__title-group {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
+  gap: $spacing-sm;
 }
 
 .new-games__accent {
@@ -56,8 +58,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp($spacing-2xl, 3vw, $control-height);
-  height: clamp($spacing-2xl, 3vw, $control-height);
+  width: $spacing-2xl;
+  height: $spacing-2xl;
   padding: 0;
   border: $border-width solid $color-on-primary;
   border-radius: 50%;
@@ -75,8 +77,18 @@
 
   img {
     display: block;
-    width: $icon-size-xs;
-    height: $spacing-lg;
+    width: $icon-size-sm;
+    height: $icon-size-sm;
+  }
+
+  @media (min-width: $breakpoint-desktop) {
+    width: $control-height;
+    height: $control-height;
+
+    img {
+      width: $icon-size-md;
+      height: $icon-size-md;
+    }
   }
 }
 
@@ -92,6 +104,10 @@
   padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
   list-style: none;
   overflow: hidden;
+
+  @include desktop-up {
+    padding-inline: calc(clamp($offset-mobile, 6.25vw, $section-offset-desktop) + $spacing-sm);
+  }
 }
 
 .new-games__card {
@@ -100,6 +116,17 @@
   overflow: hidden;
   border-radius: $radius-md;
   box-shadow: 0 12px $spacing-lg $color-shadow-strong;
+  transition:
+    flex-basis $transition-fast,
+    flex-grow $transition-fast,
+    max-width $transition-fast,
+    min-width $transition-fast;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .new-games__card {
+    transition: none;
+  }
 }
 
 .new-games__card::after {
@@ -112,7 +139,17 @@
   height: $card-fade-height;
   pointer-events: none;
   background: linear-gradient(180deg, transparent 0%, $color-card-fade 100%);
-  box-shadow: inset 0 -$card-fade-height $spacing-xl $color-card-inset;
+  box-shadow: inset 0 (-$card-fade-height) $spacing-xl $color-card-inset;
+}
+
+.new-games__open {
+  position: absolute;
+  inset: 0;
+  z-index: $card-open-layer;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  cursor: pointer;
 }
 
 .new-games__cover {

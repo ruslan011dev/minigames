@@ -6,6 +6,14 @@
     clamp($offset-mobile, 6.25vw, $section-offset-desktop);
   background-color: $color-footer;
   color: $color-on-footer;
+
+  @include tablet-down {
+    padding: $offset-tablet;
+  }
+
+  @include mobile-down {
+    padding: $spacing-xl $offset-mobile;
+  }
 }
 
 .footer__top {
@@ -14,6 +22,11 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: clamp($spacing-lg, 4vw, $spacing-4xl);
+
+  @include tablet-down {
+    flex-direction: column;
+    gap: $spacing-lg;
+  }
 }
 
 .footer__brand {
@@ -22,6 +35,12 @@
   gap: $spacing-lg;
   flex: 1 1 240px;
   max-width: $footer-brand-max;
+
+  @include tablet-down {
+    flex-basis: auto;
+    width: 100%;
+    max-width: none;
+  }
 }
 
 .footer__logo {
@@ -59,6 +78,19 @@
   flex-wrap: wrap;
   flex: 1 1 280px;
   gap: clamp($spacing-lg, 5vw, $offset-desktop);
+
+  @include tablet-down {
+    flex-basis: auto;
+    width: 100%;
+    gap: $spacing-2xl;
+  }
+
+  @include mobile-down {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: $spacing-2xl;
+    row-gap: $spacing-lg;
+  }
 }
 
 .footer__column {
@@ -67,6 +99,16 @@
   gap: $spacing-md;
   flex: 1 1 120px;
   min-width: 0;
+
+  @include tablet-down {
+    flex: 0 0 auto;
+  }
+}
+
+.footer__column--social {
+  @include mobile-down {
+    grid-column: 1 / -1;
+  }
 }
 
 .footer__heading {
@@ -74,6 +116,7 @@
   color: $color-white;
   font-size: $font-size-body-sm;
   font-weight: $font-weight-bold;
+  line-height: 1.2;
 }
 
 .footer__list {
@@ -125,6 +168,20 @@
   margin-top: clamp($spacing-lg, 4vw, $spacing-2xl);
   padding-top: clamp($offset-mobile, 2vw, $spacing-lg);
   border-top: 1px solid $color-footer-line;
+
+  @include tablet-down {
+    margin-top: $spacing-2xl;
+    padding-top: $spacing-md;
+  }
+
+  @include mobile-down {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: start;
+    gap: $spacing-sm $spacing-md;
+    margin-top: $spacing-lg;
+    padding-top: $spacing-sm;
+  }
 }
 
 .footer__copy,
@@ -137,6 +194,17 @@
 
 .footer__copy {
   flex: 1 1 180px;
+
+  @include mobile-down {
+    grid-column: 1 / -1;
+    flex: none;
+  }
+}
+
+.footer__love {
+  @include mobile-down {
+    display: none;
+  }
 }
 
 .footer__credit {

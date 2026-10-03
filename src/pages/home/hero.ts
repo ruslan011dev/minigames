@@ -4,7 +4,7 @@ export class Hero {
   public render(): HTMLElement {
     const section = document.createElement('section');
     section.className = 'hero';
-    section.setAttribute('aria-label', 'Intro');
+    section.setAttribute('aria-labelledby', 'hero-title');
 
     const media = document.createElement('img');
     media.className = 'hero__media';
@@ -25,6 +25,7 @@ export class Hero {
     card.className = 'hero__card';
 
     const title = document.createElement('h1');
+    title.id = 'hero-title';
     title.className = 'hero__title';
     title.textContent = 'Take a Short Break & Have Fun';
 
@@ -36,6 +37,7 @@ export class Hero {
     const cta = document.createElement('a');
     cta.className = 'hero__cta';
     cta.href = '/library';
+    cta.dataset.page = 'library';
     cta.textContent = 'Browse Library';
 
     card.append(title, text, cta);

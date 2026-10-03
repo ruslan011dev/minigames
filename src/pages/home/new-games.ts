@@ -15,7 +15,6 @@ type GameCard = {
   rating: string;
   likes: string;
   image: string;
-  size: CardSize;
 };
 
 const GAMES: GameCard[] = [
@@ -24,44 +23,49 @@ const GAMES: GameCard[] = [
     rating: '4.7',
     likes: '21.4K',
     image: tailsideUrl,
-    size: 'peek',
   },
   {
     title: 'Islanders: New Shores',
     rating: '4.9',
     likes: '54.2K',
     image: islandersUrl,
-    size: 'side',
   },
   {
     title: 'Vacation Cafe Simulator',
     rating: '4.8',
     likes: '28.7K',
     image: vacationCafeUrl,
-    size: 'active',
   },
   {
     title: 'Winter Burrow',
     rating: '4.9',
     likes: '32.4K',
     image: winterBurrowUrl,
-    size: 'side',
   },
   {
     title: 'Shelve the Potions',
     rating: '4.6',
     likes: '18.9K',
     image: shelvePotionsUrl,
-    size: 'peek',
   },
 ];
 
+const START_INDEX = 2;
+const SWIPE_THRESHOLD = 40;
+
 export class NewGames {
+  private cards: HTMLLIElement[] = [];
+  private activeIndex = START_INDEX;
+  private swipeStart: number | null = null;
+  private suppressClick = false;
+
   public render(): HTMLElement {
     const section = document.createElement('section');
     section.className = 'new-games';
-    section.setAttribute('aria-label', 'New games');
+    section.setAttribute('aria-labelledby', 'new-games-title');
     section.append(this.createHeader(), this.createTrack());
+    section.addEventListener('keydown', this.onKeyDown);
+    this.updateCards();
 
     return section;
   }
@@ -77,6 +81,7 @@ export class NewGames {
     accent.className = 'new-games__accent';
 
     const title = document.createElement('h2');
+    title.id = 'new-games-title';
     title.className = 'new-games__title';
     title.textContent = 'New Games';
 
@@ -87,12 +92,14 @@ export class NewGames {
   }
 
   private createNav(): HTMLElement {
-    const nav = document.createElement('div');
+    const nav = document.createElement('nav');
     nav.className = 'new-games__nav';
-    nav.append(
-      this.createNavButton('Previous games', arrowLeftUrl, false),
-      this.createNavButton('Next games', arrowRightUrl, true),
-    );
+    nav.setAttribute('aria-label', 'Slider');
+    const previous = this.createNavButton('Previous games', arrowLeftUrl, false);
+    const next = this.createNavButton('Next games', arrowRightUrl, true);
+    previous.addEventListener('click', () => this.step(-1));
+    next.addEventListener('click', () => this.step(1));
+    nav.append(previous, next);
 
     return nav;
   }
@@ -122,9 +129,15 @@ export class NewGames {
   private createTrack(): HTMLElement {
     const list = document.createElement('ul');
     list.className = 'new-games__track';
+    list.addEventListener('pointerdown', this.onPointerDown);
+    list.addEventListener('pointerup', this.onPointerUp);
+    list.addEventListener('pointercancel', this.onPointerCancel);
+    list.addEventListener('click', this.onTrackClick, true);
 
     GAMES.forEach((game) => {
-      list.append(this.createCard(game));
+      const card = this.createCard(game);
+      this.cards.push(card);
+      list.append(card);
     });
 
     return list;
@@ -132,7 +145,7 @@ export class NewGames {
 
   private createCard(game: GameCard): HTMLLIElement {
     const item = document.createElement('li');
-    item.className = `new-games__card new-games__card--${game.size}`;
+    item.className = 'new-games__card';
 
     const image = document.createElement('img');
     image.className = 'new-games__cover';
@@ -142,23 +155,33 @@ export class NewGames {
     const overlay = document.createElement('div');
     overlay.className = 'new-games__overlay';
 
-    const name = document.createElement('p');
+    const name = document.createElement('h3');
     name.className = 'new-games__name';
     name.textContent = game.title;
 
     const meta = document.createElement('div');
     meta.className = 'new-games__meta';
-    meta.append(this.createMeta(starUrl, game.rating), this.createMeta(heartUrl, game.likes));
+    meta.append(
+      this.createMeta(starUrl, game.rating, 'Rating'),
+      this.createMeta(heartUrl, game.likes, 'Likes'),
+    );
+
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'new-games__open';
+    open.dataset.gameDetails = '';
+    open.setAttribute('aria-label', `Open details for ${game.title}`);
 
     overlay.append(name, meta);
-    item.append(image, overlay);
+    item.append(image, overlay, open);
 
     return item;
   }
 
-  private createMeta(icon: string, value: string): HTMLElement {
+  private createMeta(icon: string, value: string, name: string): HTMLElement {
     const wrap = document.createElement('span');
     wrap.className = 'new-games__stat';
+    wrap.setAttribute('aria-label', `${name} ${value}`);
 
     const image = document.createElement('img');
     image.src = icon;
@@ -173,4 +196,112 @@ export class NewGames {
 
     return wrap;
   }
+
+  private step(direction: number): void {
+    const count = GAMES.length;
+    this.activeIndex = (this.activeIndex + direction + count) % count;
+    this.updateCards();
+  }
+
+  private updateCards(): void {
+    const half = Math.floor(GAMES.length / 2);
+
+    this.cards.forEach((card, index) => {
+      const delta = this.wrapOffset(index);
+      card.classList.remove(
+        'new-games__card--peek',
+        'new-games__card--side',
+        'new-games__card--active',
+      );
+      card.classList.add(`new-games__card--${this.role(delta)}`);
+      card.style.order = String(delta + half);
+
+      const open = card.querySelector('.new-games__open');
+      if (open instanceof HTMLButtonElement) {
+        if (delta === 0) {
+          open.setAttribute('aria-current', 'true');
+        } else {
+          open.removeAttribute('aria-current');
+        }
+      }
+    });
+  }
+
+  private wrapOffset(index: number): number {
+    const count = GAMES.length;
+    const half = Math.floor(count / 2);
+    let delta = index - this.activeIndex;
+
+    if (delta > half) {
+      delta -= count;
+    } else if (delta < -half) {
+      delta += count;
+    }
+
+    return delta;
+  }
+
+  private role(delta: number): CardSize {
+    if (delta === 0) {
+      return 'active';
+    }
+
+    if (Math.abs(delta) === 1) {
+      return 'side';
+    }
+
+    return 'peek';
+  }
+
+  private onKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      this.step(1);
+      return;
+    }
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      this.step(-1);
+    }
+  };
+
+  private onPointerDown = (event: PointerEvent): void => {
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return;
+    }
+
+    this.swipeStart = event.clientX;
+    this.suppressClick = false;
+  };
+
+  private onPointerUp = (event: PointerEvent): void => {
+    if (this.swipeStart === null) {
+      return;
+    }
+
+    const delta = event.clientX - this.swipeStart;
+    this.swipeStart = null;
+
+    if (Math.abs(delta) < SWIPE_THRESHOLD) {
+      return;
+    }
+
+    this.suppressClick = true;
+    this.step(delta < 0 ? 1 : -1);
+  };
+
+  private onPointerCancel = (): void => {
+    this.swipeStart = null;
+  };
+
+  private onTrackClick = (event: MouseEvent): void => {
+    if (!this.suppressClick) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.suppressClick = false;
+  };
 }
