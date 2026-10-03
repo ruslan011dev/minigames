@@ -29,6 +29,15 @@ $library-card-stack: 610px;
   font-size: $font-size-body-sm;
 }
 
+.library-cards .feedback-banner,
+.library-cards .feedback-empty {
+  margin-inline: 0;
+}
+
+.library-card--skeleton {
+  min-height: $card-height-tablet;
+}
+
 .library-card {
   display: flex;
   min-width: 0;

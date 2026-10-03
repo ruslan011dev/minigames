@@ -1,73 +1,167 @@
-import islandersUrl from '../../assets/images/islanders-new-shores-card.jpg';
-import shelvePotionsUrl from '../../assets/images/shelve-the-potions-card.jpg';
-import tailsideUrl from '../../assets/images/tailside-cozy-cafe-sim-card.jpg';
-import vacationCafeUrl from '../../assets/images/vacation-cafe-simulator-card.jpg';
-import winterBurrowUrl from '../../assets/images/winter-burrow-card.jpg';
+import { ApiError, isAbortError } from '../../api/client';
+import { getFeaturedGames, type GameSummary } from '../../api/games';
+import { createEmptyState, createErrorBanner } from '../../components/feedback/feedback';
+import { snackbar } from '../../components/snackbar/snackbar';
+import { formatCompactCount, formatRating } from '../../utils/format';
+import { publicAssetUrl } from '../../utils/media';
 import arrowLeftUrl from '../../assets/icons/arrow-left.svg?url';
 import arrowRightUrl from '../../assets/icons/arrow-right.svg?url';
 import heartUrl from '../../assets/icons/heart.svg?url';
 import starUrl from '../../assets/icons/star.svg?url';
 
-type CardSize = 'peek' | 'side' | 'active';
+type CardSize = 'peek' | 'side' | 'active' | 'far';
 
-type GameCard = {
-  title: string;
-  rating: string;
-  likes: string;
-  image: string;
-};
-
-const GAMES: GameCard[] = [
-  {
-    title: 'Tailside: Cozy Cafe Sim',
-    rating: '4.7',
-    likes: '21.4K',
-    image: tailsideUrl,
-  },
-  {
-    title: 'Islanders: New Shores',
-    rating: '4.9',
-    likes: '54.2K',
-    image: islandersUrl,
-  },
-  {
-    title: 'Vacation Cafe Simulator',
-    rating: '4.8',
-    likes: '28.7K',
-    image: vacationCafeUrl,
-  },
-  {
-    title: 'Winter Burrow',
-    rating: '4.9',
-    likes: '32.4K',
-    image: winterBurrowUrl,
-  },
-  {
-    title: 'Shelve the Potions',
-    rating: '4.6',
-    likes: '18.9K',
-    image: shelvePotionsUrl,
-  },
-];
-
-const START_INDEX = 2;
 const SWIPE_THRESHOLD = 40;
+const SKELETON_ROLES: CardSize[] = ['peek', 'side', 'active', 'side', 'peek'];
 
 export class NewGames {
+  private games: GameSummary[] = [];
   private cards: HTMLLIElement[] = [];
-  private activeIndex = START_INDEX;
+  private activeIndex = 0;
   private swipeStart: number | null = null;
   private suppressClick = false;
+  private panel: HTMLElement | null = null;
+  private previousButton: HTMLButtonElement | null = null;
+  private nextButton: HTMLButtonElement | null = null;
+  private controller: AbortController | null = null;
+  private alive = true;
+  private hadError = false;
 
   public render(): HTMLElement {
     const section = document.createElement('section');
     section.className = 'new-games';
     section.setAttribute('aria-labelledby', 'new-games-title');
-    section.append(this.createHeader(), this.createTrack());
+
+    const panel = document.createElement('div');
+    panel.className = 'new-games__panel';
+    this.panel = panel;
+
+    section.append(this.createHeader(), panel);
     section.addEventListener('keydown', this.onKeyDown);
-    this.updateCards();
+    this.showLoading();
+    void this.load();
 
     return section;
+  }
+
+  public destroy(): void {
+    this.alive = false;
+    this.controller?.abort();
+  }
+
+  private load = async (): Promise<void> => {
+    this.controller?.abort();
+    const controller = new AbortController();
+    this.controller = controller;
+    this.showLoading();
+
+    try {
+      const games = await getFeaturedGames(controller.signal);
+
+      if (!this.alive || controller.signal.aborted) {
+        return;
+      }
+
+      this.games = games;
+
+      if (games.length === 0) {
+        this.showEmpty();
+        snackbar.show('No featured games right now.', 'warning');
+        return;
+      }
+
+      this.activeIndex = Math.floor(games.length / 2);
+      this.showGames();
+
+      if (this.hadError) {
+        this.hadError = false;
+        snackbar.show('Featured games loaded.', 'success');
+      }
+    } catch (error) {
+      if (!this.alive || isAbortError(error)) {
+        return;
+      }
+
+      this.hadError = true;
+      const message = error instanceof ApiError ? error.message : 'Could not load featured games.';
+      this.showError(message);
+      snackbar.show(message, 'error');
+    }
+  };
+
+  private showLoading(): void {
+    this.games = [];
+    this.cards = [];
+    this.setNavEnabled(false);
+
+    if (!this.panel) {
+      return;
+    }
+
+    this.panel.setAttribute('aria-busy', 'true');
+    this.panel.replaceChildren(this.createSkeleton());
+  }
+
+  private showError(message: string): void {
+    this.setNavEnabled(false);
+
+    if (!this.panel) {
+      return;
+    }
+
+    this.panel.removeAttribute('aria-busy');
+    this.panel.replaceChildren(
+      createErrorBanner(message, () => {
+        void this.load();
+      }),
+    );
+  }
+
+  private showEmpty(): void {
+    this.setNavEnabled(false);
+
+    if (!this.panel) {
+      return;
+    }
+
+    this.panel.removeAttribute('aria-busy');
+    this.panel.replaceChildren(
+      createEmptyState('No featured games', 'New games will show up here when they are available.'),
+    );
+  }
+
+  private showGames(): void {
+    this.setNavEnabled(true);
+
+    if (!this.panel) {
+      return;
+    }
+
+    this.panel.removeAttribute('aria-busy');
+    const track = this.createTrack();
+    this.panel.replaceChildren(track);
+    this.updateCards();
+  }
+
+  private createSkeleton(): HTMLElement {
+    const list = document.createElement('ul');
+    list.className = 'new-games__track';
+    list.setAttribute('aria-hidden', 'true');
+
+    SKELETON_ROLES.forEach((role) => {
+      const item = document.createElement('li');
+      item.className = `new-games__card new-games__card--${role} new-games__card--skeleton is-skeleton`;
+      list.append(item);
+    });
+
+    const status = document.createElement('p');
+    status.className = 'visually-hidden';
+    status.textContent = 'Loading featured games';
+
+    const wrap = document.createElement('div');
+    wrap.append(status, list);
+
+    return wrap;
   }
 
   private createHeader(): HTMLElement {
@@ -99,9 +193,23 @@ export class NewGames {
     const next = this.createNavButton('Next games', arrowRightUrl, true);
     previous.addEventListener('click', () => this.step(-1));
     next.addEventListener('click', () => this.step(1));
+    previous.disabled = true;
+    next.disabled = true;
+    this.previousButton = previous;
+    this.nextButton = next;
     nav.append(previous, next);
 
     return nav;
+  }
+
+  private setNavEnabled(enabled: boolean): void {
+    if (this.previousButton) {
+      this.previousButton.disabled = !enabled;
+    }
+
+    if (this.nextButton) {
+      this.nextButton.disabled = !enabled;
+    }
   }
 
   private createNavButton(label: string, icon: string, next: boolean): HTMLButtonElement {
@@ -133,8 +241,9 @@ export class NewGames {
     list.addEventListener('pointerup', this.onPointerUp);
     list.addEventListener('pointercancel', this.onPointerCancel);
     list.addEventListener('click', this.onTrackClick, true);
+    this.cards = [];
 
-    GAMES.forEach((game) => {
+    this.games.forEach((game) => {
       const card = this.createCard(game);
       this.cards.push(card);
       list.append(card);
@@ -143,34 +252,37 @@ export class NewGames {
     return list;
   }
 
-  private createCard(game: GameCard): HTMLLIElement {
+  private createCard(game: GameSummary): HTMLLIElement {
     const item = document.createElement('li');
     item.className = 'new-games__card';
 
     const image = document.createElement('img');
     image.className = 'new-games__cover';
-    image.src = game.image;
-    image.alt = game.title;
+    image.src = publicAssetUrl(game.cardImage);
+    image.alt = game.name;
 
     const overlay = document.createElement('div');
     overlay.className = 'new-games__overlay';
 
     const name = document.createElement('h3');
     name.className = 'new-games__name';
-    name.textContent = game.title;
+    name.textContent = game.name;
 
+    const rating = formatRating(game.rating);
+    const likes = formatCompactCount(game.likesCount);
     const meta = document.createElement('div');
     meta.className = 'new-games__meta';
     meta.append(
-      this.createMeta(starUrl, game.rating, 'Rating'),
-      this.createMeta(heartUrl, game.likes, 'Likes'),
+      this.createMeta(starUrl, rating, 'Rating'),
+      this.createMeta(heartUrl, likes, 'Likes'),
     );
 
     const open = document.createElement('button');
     open.type = 'button';
     open.className = 'new-games__open';
     open.dataset.gameDetails = '';
-    open.setAttribute('aria-label', `Open details for ${game.title}`);
+    open.dataset.gameSlug = game.slug;
+    open.setAttribute('aria-label', `Open details for ${game.name}`);
 
     overlay.append(name, meta);
     item.append(image, overlay, open);
@@ -189,22 +301,30 @@ export class NewGames {
     image.width = 16;
     image.height = 16;
 
-    const text = document.createElement('span');
-    text.textContent = value;
-
-    wrap.append(image, text);
+    wrap.append(image, document.createTextNode(value));
 
     return wrap;
   }
 
   private step(direction: number): void {
-    const count = GAMES.length;
+    const count = this.games.length;
+
+    if (count === 0) {
+      return;
+    }
+
     this.activeIndex = (this.activeIndex + direction + count) % count;
     this.updateCards();
   }
 
   private updateCards(): void {
-    const half = Math.floor(GAMES.length / 2);
+    const count = this.games.length;
+
+    if (count === 0) {
+      return;
+    }
+
+    const half = Math.floor(count / 2);
 
     this.cards.forEach((card, index) => {
       const delta = this.wrapOffset(index);
@@ -212,6 +332,7 @@ export class NewGames {
         'new-games__card--peek',
         'new-games__card--side',
         'new-games__card--active',
+        'new-games__card--far',
       );
       card.classList.add(`new-games__card--${this.role(delta)}`);
       card.style.order = String(delta + half);
@@ -228,7 +349,7 @@ export class NewGames {
   }
 
   private wrapOffset(index: number): number {
-    const count = GAMES.length;
+    const count = this.games.length;
     const half = Math.floor(count / 2);
     let delta = index - this.activeIndex;
 
@@ -250,7 +371,11 @@ export class NewGames {
       return 'side';
     }
 
-    return 'peek';
+    if (Math.abs(delta) === 2) {
+      return 'peek';
+    }
+
+    return 'far';
   }
 
   private onKeyDown = (event: KeyboardEvent): void => {

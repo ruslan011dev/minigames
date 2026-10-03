@@ -1,0 +1,83 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+@keyframes feedback-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: $opacity-muted;
+  }
+}
+
+.is-skeleton {
+  background-color: $color-divider;
+  animation: feedback-pulse $skeleton-duration ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-skeleton {
+    animation: none;
+  }
+}
+
+.feedback-banner,
+.feedback-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: $spacing-sm;
+  margin-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
+  padding: $spacing-lg;
+  border-radius: $radius-md;
+}
+
+.feedback-banner {
+  border: $border-width solid $color-danger;
+  background-color: $color-danger-surface;
+  color: $color-danger;
+}
+
+.feedback-empty {
+  border: $border-width dashed $color-divider;
+  background-color: $color-white;
+  color: $color-on-bg;
+}
+
+.feedback-banner__text,
+.feedback-empty__title,
+.feedback-empty__text {
+  margin: 0;
+  font-size: $font-size-body-sm;
+  line-height: 1.4;
+}
+
+.feedback-empty__title {
+  color: $color-on-primary;
+  font-weight: $font-weight-bold;
+}
+
+.feedback-banner__retry {
+  margin-top: $spacing-sm;
+  padding: $btn-padding-y $btn-padding-x;
+  border: $border-width solid $color-on-primary;
+  border-radius: $radius-sm;
+  background-color: $color-primary;
+  color: $color-on-primary;
+  font-family: $font-main;
+  font-size: $font-size-label;
+  font-weight: $font-weight-bold;
+  cursor: pointer;
+  transition: background-color $transition-fast;
+
+  @include hover {
+    background-color: $color-primary-hover;
+  }
+
+  &:active {
+    background-color: $color-primary-active;
+  }
+}

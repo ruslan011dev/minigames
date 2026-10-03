@@ -26,11 +26,13 @@ $card-open-layer: 3;
 
 .new-games__accent {
   display: block;
+  flex-shrink: 0;
+  box-sizing: border-box;
   width: $accent-bar-width;
   height: $spacing-lg;
-  flex-shrink: 0;
+  border: $border-width-accent solid $color-on-primary;
+  border-radius: $radius-xs;
   background-color: $color-primary;
-  border-radius: $radius-sm;
 
   @include desktop-up {
     height: $spacing-xl;
@@ -58,17 +60,19 @@ $card-open-layer: 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: $spacing-2xl;
-  height: $spacing-2xl;
+  width: $control-height;
+  height: $control-height;
   padding: 0;
   border: $border-width solid $color-on-primary;
   border-radius: 50%;
-  background-color: $color-bg;
+  background-color: $color-white;
   cursor: pointer;
   transition: background-color $transition-fast;
 
   @include hover {
-    background-color: $color-primary;
+    &:not(:disabled) {
+      background-color: $color-primary;
+    }
   }
 
   &:active {
@@ -77,18 +81,8 @@ $card-open-layer: 3;
 
   img {
     display: block;
-    width: $icon-size-sm;
-    height: $icon-size-sm;
-  }
-
-  @media (min-width: $breakpoint-desktop) {
-    width: $control-height;
-    height: $control-height;
-
-    img {
-      width: $icon-size-md;
-      height: $icon-size-md;
-    }
+    width: $icon-size-md;
+    height: $icon-size-md;
   }
 }
 
@@ -96,31 +90,62 @@ $card-open-layer: 3;
   background-color: $color-primary;
 }
 
+.new-games__nav-btn:disabled {
+  opacity: $opacity-muted;
+  cursor: default;
+}
+
+.new-games__panel {
+  min-height: clamp($carousel-height-min, 52vw, $carousel-height-max);
+
+  @include desktop-up {
+    min-height: calc(#{$carousel-height-max} + #{$spacing-xs});
+  }
+}
+
+.new-games__card--skeleton {
+  box-shadow: none;
+
+  &::after {
+    content: none;
+  }
+}
+
 .new-games__track {
   display: flex;
+  align-items: flex-start;
   gap: $spacing-sm;
-  height: clamp($carousel-height-min, 36.5vw, $carousel-height-max);
+  height: clamp($carousel-height-min, 52vw, $carousel-height-max);
   margin: 0;
   padding-inline: clamp($offset-mobile, 6.25vw, $section-offset-desktop);
   list-style: none;
-  overflow: hidden;
 
   @include desktop-up {
-    padding-inline: calc(clamp($offset-mobile, 6.25vw, $section-offset-desktop) + $spacing-sm);
+    height: calc(#{$carousel-height-max} + #{$spacing-xs});
+    padding-inline: calc(
+      #{clamp($offset-mobile, 6.25vw, $section-offset-desktop)} + #{$spacing-sm}
+    );
   }
 }
 
 .new-games__card {
   position: relative;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  height: 100%;
   overflow: hidden;
-  border-radius: $radius-md;
-  box-shadow: 0 12px $spacing-lg $color-shadow-strong;
+  border: $border-width-auth solid $color-on-primary;
+  border-radius: $radius-xl;
+  background-color: $color-white;
+  box-shadow: $spacing-xs $spacing-xs 0 0 $color-on-primary;
   transition:
     flex-basis $transition-fast,
     flex-grow $transition-fast,
     max-width $transition-fast,
     min-width $transition-fast;
+
+  @include desktop-up {
+    height: $carousel-height-max;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -129,7 +154,7 @@ $card-open-layer: 3;
   }
 }
 
-.new-games__card::after {
+.new-games__card--peek::after {
   content: '';
   position: absolute;
   right: 0;
@@ -138,8 +163,12 @@ $card-open-layer: 3;
   z-index: 1;
   height: $card-fade-height;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 0%, $color-card-fade 100%);
-  box-shadow: inset 0 (-$card-fade-height) $spacing-xl $color-card-inset;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    $color-slide-scrim 17%,
+    $color-slide-scrim-strong 46%
+  );
 }
 
 .new-games__open {
@@ -167,15 +196,21 @@ $card-open-layer: 3;
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: $spacing-xs;
-  padding: $spacing-sm $spacing-md $spacing-md;
+  gap: $spacing-sm;
+  padding: $spacing-md;
   color: $color-white;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    $color-slide-scrim 17%,
+    $color-slide-scrim-strong 46%
+  );
 }
 
 .new-games__card--peek {
-  flex: 0 1 $carousel-peek;
+  flex: 5 1 0;
   width: auto;
-  min-width: $spacing-2xl;
+  min-width: 0;
   max-width: $carousel-peek;
 }
 
@@ -184,7 +219,7 @@ $card-open-layer: 3;
 
   @include desktop-up {
     display: block;
-    flex: 0 1 $carousel-side;
+    flex: 12 1 0;
     width: auto;
     min-width: 0;
     max-width: $carousel-side;
@@ -192,25 +227,23 @@ $card-open-layer: 3;
 }
 
 .new-games__card--active {
-  flex: 1 1 auto;
+  flex: 34 1 0;
   min-width: 0;
+}
+
+.new-games__card--far {
+  display: none;
 }
 
 .new-games__card--peek .new-games__overlay {
   display: none;
-
-  @include desktop-up {
-    display: none;
-  }
 }
 
 .new-games__name {
   margin: 0;
-  overflow: hidden;
-  font-size: $font-size-label;
+  font-size: $font-size-body;
   font-weight: $font-weight-bold;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.2;
 }
 
 .new-games__meta {
@@ -224,8 +257,8 @@ $card-open-layer: 3;
   display: flex;
   align-items: center;
   gap: $spacing-xs;
-  font-size: $font-size-label;
-  font-weight: $font-weight-medium;
+  font-size: $font-size-body-sm;
+  font-weight: $font-weight-bold;
 
   img {
     display: block;

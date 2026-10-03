@@ -5,11 +5,14 @@
 @use './components/auth/auth';
 @use './components/game-details/details';
 @use './components/footer/footer';
+@use './components/snackbar/snackbar';
+@use './components/feedback/feedback';
 @use './pages/home/hero';
 @use './pages/home/new-games';
 @use './pages/home/leaderboard';
 @use './pages/home/developer';
 @use './pages/library/library';
+@use './pages/not-found/not-found';
 
 * {
   box-sizing: border-box;

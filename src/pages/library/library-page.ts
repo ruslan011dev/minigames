@@ -1,67 +1,92 @@
 import type { Page } from '../../types/page';
-import { libraryPageCount } from './library-catalog';
 import { LibraryCards } from './library-cards';
 import { LibraryPagination } from './library-pagination';
-import { LibraryToolbar, type LibraryQuery } from './library-toolbar';
+import type { LibraryQuery } from './library-toolbar';
+import { LibraryToolbar } from './library-toolbar';
+
+export type LibraryLocation = LibraryQuery & {
+  page: number;
+};
 
 export class LibraryPage implements Page {
   private toolbar: LibraryToolbar | null = null;
   private cards: LibraryCards | null = null;
-  private cardSection: HTMLElement | null = null;
   private pagination: LibraryPagination | null = null;
-  private pageNumber = 1;
+  private totalPages = 1;
+  private loaded: LibraryLocation;
+
+  constructor(
+    private readonly initial: LibraryLocation,
+    private readonly onNavigate: (query: LibraryLocation) => void,
+  ) {
+    this.loaded = initial;
+  }
 
   public render(): HTMLElement {
     const page = document.createElement('div');
     page.className = 'page page--library';
 
-    this.toolbar = new LibraryToolbar((query) => {
-      this.pageNumber = 1;
-      this.showGames(query);
+    this.cards = new LibraryCards((result) => {
+      this.totalPages = result.totalPages;
+      this.pagination?.setState(result.page, result.totalPages);
     });
-    this.cards = new LibraryCards();
+    this.toolbar = new LibraryToolbar(this.initial, (query) => {
+      this.onNavigate({ ...query, page: 1 });
+    });
     this.pagination = new LibraryPagination((pageNumber) => {
-      this.pageNumber = pageNumber;
-      this.showGames(this.currentQuery());
-    });
+      const query = this.toolbar?.getQuery();
 
-    const query = this.toolbar.getQuery();
-    this.cardSection = this.cards.render(query.category, query.sort, this.pageNumber);
+      if (!query) {
+        return;
+      }
+
+      this.onNavigate({ ...query, page: pageNumber });
+    });
 
     page.append(
       this.createIntro(),
       this.toolbar.render(),
-      this.cardSection,
-      this.pagination.render(libraryPageCount(query.category)),
+      this.cards.render(),
+      this.pagination.render(this.totalPages),
     );
+    this.pagination.setState(this.initial.page, this.totalPages);
+    this.cards.load({
+      category: this.initial.category,
+      sort: this.initial.sort,
+      page: this.initial.page,
+    });
 
     return page;
   }
 
-  public destroy(): void {
-    this.toolbar?.destroy();
-    this.toolbar = null;
-    this.cards = null;
-    this.cardSection = null;
-    this.pagination = null;
-  }
+  public sync(query: LibraryLocation): void {
+    const same =
+      this.loaded.category === query.category &&
+      this.loaded.sort === query.sort &&
+      this.loaded.page === query.page;
 
-  private showGames(query: LibraryQuery): void {
-    if (!this.cards || !this.cardSection) {
+    this.loaded = query;
+    this.toolbar?.setQuery(query);
+    this.pagination?.setState(query.page, this.totalPages);
+
+    if (same) {
       return;
     }
 
-    const pageCount = libraryPageCount(query.category);
-    if (this.pageNumber > pageCount) {
-      this.pageNumber = 1;
-    }
-
-    this.pagination?.setState(this.pageNumber, pageCount);
-    this.cards.update(this.cardSection, query.category, query.sort, this.pageNumber);
+    this.cards?.load({
+      category: query.category,
+      sort: query.sort,
+      page: query.page,
+    });
   }
 
-  private currentQuery(): LibraryQuery {
-    return this.toolbar?.getQuery() ?? { category: 'all', sort: null };
+  public destroy(): void {
+    this.cards?.destroy();
+    this.toolbar?.destroy();
+    this.pagination?.destroy();
+    this.toolbar = null;
+    this.cards = null;
+    this.pagination = null;
   }
 
   private createIntro(): HTMLElement {

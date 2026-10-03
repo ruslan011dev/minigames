@@ -77,6 +77,12 @@ $color-sort-option-hover: #fff9e5;
   }
 }
 
+.library-toolbar__filters .feedback-banner,
+.library-toolbar__filters .feedback-empty {
+  margin-inline: 0;
+  flex-basis: 100%;
+}
+
 .library-chip {
   flex-shrink: 0;
   padding: $spacing-sm $spacing-md;
@@ -96,6 +102,14 @@ $color-sort-option-hover: #fff9e5;
 
   &--active {
     background-color: $color-primary;
+  }
+
+  &--skeleton {
+    width: $spacing-4xl;
+    height: $control-height;
+    padding: 0;
+    border-color: transparent;
+    pointer-events: none;
   }
 }
 
