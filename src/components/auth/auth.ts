@@ -4,6 +4,8 @@ import mailUrl from '../../assets/icons/mail.svg?url';
 import personUrl from '../../assets/icons/person.svg?url';
 import visibilityOffUrl from '../../assets/icons/visibility-off.svg?url';
 import visibilityUrl from '../../assets/icons/visibility.svg?url';
+import { type EmailAuthRequest } from '../../firebase/email-auth';
+import { snackbar } from '../snackbar/snackbar';
 import {
   isLoginFormValid,
   isRegisterFormValid,
@@ -43,11 +45,13 @@ export class AuthDialog {
   private passwordToggle: HTMLButtonElement | null = null;
   private loginSubmit: HTMLButtonElement | null = null;
   private registerSubmit: HTMLButtonElement | null = null;
+  private pending = false;
   private readonly fields = new Map<AuthFieldKey, AuthFieldView>();
 
   constructor(
     private readonly onDismiss?: () => void,
     private readonly onModeChange?: (mode: AuthMode) => void,
+    private readonly onSubmit?: (request: EmailAuthRequest) => Promise<void>,
   ) {}
 
   public render(): HTMLDialogElement {
@@ -76,7 +80,7 @@ export class AuthDialog {
   }
 
   public close(): void {
-    if (!this.dialog?.open) {
+    if (this.pending || !this.dialog?.open) {
       return;
     }
 
@@ -179,6 +183,7 @@ export class AuthDialog {
 
     form.addEventListener('submit', (event) => {
       event.preventDefault();
+      void this.submitForm('login');
     });
 
     panel.append(form);
@@ -261,6 +266,7 @@ export class AuthDialog {
 
     form.addEventListener('submit', (event) => {
       event.preventDefault();
+      void this.submitForm('register');
     });
 
     panel.append(form);
@@ -435,7 +441,7 @@ export class AuthDialog {
   }
 
   private chooseMode(mode: AuthMode): void {
-    if (this.mode === mode) {
+    if (this.pending || this.mode === mode) {
       return;
     }
 
@@ -443,7 +449,12 @@ export class AuthDialog {
     this.onModeChange?.(mode);
   }
 
-  private onDialogCancel = (): void => {
+  private onDialogCancel = (event: Event): void => {
+    if (this.pending) {
+      event.preventDefault();
+      return;
+    }
+
     this.userClose = true;
   };
 
@@ -498,6 +509,10 @@ export class AuthDialog {
 
     const field = this.fields.get(key);
     if (!field) {
+      return;
+    }
+
+    if (this.pending) {
       return;
     }
 
@@ -610,8 +625,94 @@ export class AuthDialog {
   };
 
   private onBackdropClick = (event: MouseEvent): void => {
+    if (this.pending) {
+      return;
+    }
+
     if (event.target === this.dialog) {
       this.close();
     }
   };
+
+  private async submitForm(mode: AuthMode): Promise<void> {
+    if (this.pending || !this.onSubmit) {
+      return;
+    }
+
+    const request = this.requestFor(mode);
+    if (!request) {
+      return;
+    }
+
+    this.setPending(true);
+
+    try {
+      await this.onSubmit(request);
+      this.setPending(false);
+      this.resetForms();
+      this.close();
+    } catch (error) {
+      this.setPending(false);
+      const message = error instanceof Error ? error.message : 'Could not sign in.';
+      snackbar.show(message, 'error');
+    }
+  }
+
+  private requestFor(mode: AuthMode): EmailAuthRequest | null {
+    if (mode === 'login') {
+      if (!isLoginFormValid(this.fieldValue('login-email'), this.fieldValue('login-password'))) {
+        return null;
+      }
+
+      return {
+        mode: 'login',
+        email: this.fieldValue('login-email').trim(),
+        password: this.fieldValue('login-password'),
+      };
+    }
+
+    if (
+      !isRegisterFormValid(
+        this.fieldValue('register-username'),
+        this.fieldValue('register-email'),
+        this.fieldValue('register-password'),
+        this.fieldValue('register-confirm'),
+      )
+    ) {
+      return null;
+    }
+
+    return {
+      mode: 'register',
+      username: this.fieldValue('register-username').trim(),
+      email: this.fieldValue('register-email').trim(),
+      password: this.fieldValue('register-password'),
+    };
+  }
+
+  private setPending(pending: boolean): void {
+    this.pending = pending;
+    this.dialog?.setAttribute('aria-busy', String(pending));
+
+    this.dialog?.querySelectorAll<HTMLInputElement>('input').forEach((input) => {
+      input.disabled = pending;
+    });
+
+    this.dialog?.querySelectorAll<HTMLButtonElement>('button').forEach((button) => {
+      button.disabled = pending;
+    });
+
+    if (this.loginSubmit) {
+      this.loginSubmit.textContent = pending && this.mode === 'login' ? 'Signing in...' : 'Login';
+    }
+
+    if (this.registerSubmit) {
+      this.registerSubmit.textContent =
+        pending && this.mode === 'register' ? 'Creating account...' : 'Create Account';
+    }
+
+    if (!pending) {
+      this.updateSubmitState();
+    }
+  }
 }

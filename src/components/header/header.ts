@@ -1,6 +1,8 @@
 import burgerUrl from '../../assets/icons/burger.svg?url';
 import closeUrl from '../../assets/icons/close.svg?url';
 import logoUrl from '../../assets/icons/logo.png';
+import type { AppSession } from '../../session/app-session';
+import { profileLabel } from '../../session/app-session';
 import type { PageId } from '../../types/page';
 import type { AuthMode } from '../auth/auth';
 
@@ -23,8 +25,15 @@ export class Header {
   private root: HTMLElement | null = null;
   private burger: HTMLButtonElement | null = null;
   private menu: HTMLDialogElement | null = null;
+  private headerUser: HTMLElement | null = null;
+  private headerName: HTMLElement | null = null;
+  private menuUser: HTMLElement | null = null;
+  private menuName: HTMLElement | null = null;
 
-  constructor(private readonly onOpenAuth: (mode: AuthMode) => void) {}
+  constructor(
+    private readonly onOpenAuth: (mode: AuthMode) => void,
+    private readonly onLogout?: () => void,
+  ) {}
 
   public render(): HTMLElement {
     const header = document.createElement('header');
@@ -55,6 +64,31 @@ export class Header {
 
   public dismissMenu(): void {
     this.closeMenu();
+  }
+
+  public setSession(session: AppSession | null): void {
+    const signedIn = session !== null;
+    const label = session ? profileLabel(session.displayName, session.email) : '';
+
+    this.root?.querySelectorAll<HTMLElement>('[data-guest]').forEach((control) => {
+      control.hidden = signedIn;
+    });
+
+    if (this.headerUser) {
+      this.headerUser.hidden = !signedIn;
+    }
+
+    if (this.menuUser) {
+      this.menuUser.hidden = !signedIn;
+    }
+
+    if (this.headerName) {
+      this.headerName.textContent = label;
+    }
+
+    if (this.menuName) {
+      this.menuName.textContent = label;
+    }
   }
 
   private createLogo(): HTMLAnchorElement {
@@ -119,6 +153,9 @@ export class Header {
 
     const logIn = this.createAuthButton('Log In', 'header__btn header__btn--outline', 'login');
     const signUp = this.createAuthButton('Sign Up', 'header__btn header__btn--primary', 'register');
+    const user = this.createUserBlock('header');
+    this.headerUser = user.root;
+    this.headerName = user.name;
 
     this.burger = document.createElement('button');
     this.burger.type = 'button';
@@ -134,7 +171,7 @@ export class Header {
     burgerIcon.height = 32;
 
     this.burger.append(burgerIcon);
-    actions.append(logIn, signUp, this.burger);
+    actions.append(logIn, signUp, user.root, this.burger);
 
     return actions;
   }
@@ -144,6 +181,7 @@ export class Header {
     button.type = 'button';
     button.className = className;
     button.dataset.auth = mode;
+    button.dataset.guest = 'true';
     button.textContent = label;
     button.addEventListener('click', () => {
       this.closeMenu();
@@ -178,14 +216,46 @@ export class Header {
 
     const actions = document.createElement('div');
     actions.className = 'menu__actions';
+    const user = this.createUserBlock('menu');
+    this.menuUser = user.root;
+    this.menuName = user.name;
     actions.append(
       this.createAuthButton('Log In', 'header__btn header__btn--outline menu__btn', 'login'),
       this.createAuthButton('Sign Up', 'header__btn header__btn--primary menu__btn', 'register'),
+      user.root,
     );
 
     menu.append(top, nav, actions);
 
     return menu;
+  }
+
+  private createUserBlock(place: 'header' | 'menu'): {
+    root: HTMLDivElement;
+    name: HTMLElement;
+  } {
+    const root = document.createElement('div');
+    root.className = place === 'header' ? 'header__user' : 'menu__user';
+    root.hidden = true;
+
+    const name = document.createElement(place === 'header' ? 'span' : 'p');
+    name.className = place === 'header' ? 'header__name' : 'menu__name';
+
+    const logout = document.createElement('button');
+    logout.type = 'button';
+    logout.className =
+      place === 'header'
+        ? 'header__btn header__logout'
+        : 'header__btn header__btn--outline menu__btn';
+    logout.textContent = 'Log out';
+    logout.addEventListener('click', () => {
+      this.closeMenu();
+      this.onLogout?.();
+    });
+
+    root.append(name, logout);
+
+    return { root, name };
   }
 
   private createCloseButton(): HTMLButtonElement {
