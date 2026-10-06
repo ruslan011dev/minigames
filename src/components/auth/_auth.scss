@@ -87,6 +87,22 @@
   gap: $spacing-sm;
 }
 
+.auth__field--invalid .auth__control {
+  border-color: $color-danger;
+}
+
+.auth__error {
+  margin: 0;
+  color: $color-danger;
+  font-size: $font-size-caption;
+  font-weight: $font-weight-medium;
+  line-height: 1.2;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
 .auth__label {
   color: $color-on-primary;
   font-size: $font-size-label;
@@ -173,11 +189,19 @@
   transition: background-color $transition-fast;
 
   @include hover {
-    background-color: $color-primary-hover;
+    &:not(:disabled) {
+      background-color: $color-primary-hover;
+    }
   }
 
-  &:active {
+  &:not(:disabled):active {
     background-color: $color-primary-active;
+  }
+
+  &:disabled {
+    opacity: $opacity-muted;
+    box-shadow: none;
+    cursor: default;
   }
 }
 

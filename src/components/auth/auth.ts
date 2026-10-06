@@ -4,8 +4,32 @@ import mailUrl from '../../assets/icons/mail.svg?url';
 import personUrl from '../../assets/icons/person.svg?url';
 import visibilityOffUrl from '../../assets/icons/visibility-off.svg?url';
 import visibilityUrl from '../../assets/icons/visibility.svg?url';
+import {
+  isLoginFormValid,
+  isRegisterFormValid,
+  validateConfirmPassword,
+  validateEmail,
+  validateLoginPassword,
+  validateRegisterPassword,
+  validateUsername,
+} from './auth-validation';
 
 export type AuthMode = 'login' | 'register';
+
+type AuthFieldKey =
+  | 'login-email'
+  | 'login-password'
+  | 'register-username'
+  | 'register-email'
+  | 'register-password'
+  | 'register-confirm';
+
+interface AuthFieldView {
+  root: HTMLDivElement;
+  input: HTMLInputElement;
+  error: HTMLParagraphElement;
+  touched: boolean;
+}
 
 export class AuthDialog {
   private dialog: HTMLDialogElement | null = null;
@@ -17,6 +41,9 @@ export class AuthDialog {
   private registerPanel: HTMLElement | null = null;
   private passwordInput: HTMLInputElement | null = null;
   private passwordToggle: HTMLButtonElement | null = null;
+  private loginSubmit: HTMLButtonElement | null = null;
+  private registerSubmit: HTMLButtonElement | null = null;
+  private readonly fields = new Map<AuthFieldKey, AuthFieldView>();
 
   constructor(
     private readonly onDismiss?: () => void,
@@ -100,7 +127,7 @@ export class AuthDialog {
 
     const form = document.createElement('form');
     form.className = 'auth__form';
-    form.noValidate = false;
+    form.noValidate = true;
 
     const header = this.createHeader(
       'Welcome Back!',
@@ -110,6 +137,7 @@ export class AuthDialog {
 
     const email = this.createField({
       id: 'auth-login-email',
+      field: 'login-email',
       label: 'Email Address',
       type: 'email',
       name: 'email',
@@ -120,13 +148,13 @@ export class AuthDialog {
 
     const password = this.createField({
       id: 'auth-login-password',
+      field: 'login-password',
       label: 'Password',
       type: 'password',
       name: 'password',
       placeholder: '••••••••',
       icon: lockUrl,
       autocomplete: 'current-password',
-      minLength: 8,
       toggle: true,
     });
 
@@ -143,7 +171,7 @@ export class AuthDialog {
       email,
       password,
       forgot,
-      this.createSubmit('Login'),
+      this.createSubmit('Login', 'login'),
       this.createDivider(),
       this.createGoogleButton('Continue with Google'),
       this.createFooter("Don't have an account?", 'Register', 'register'),
@@ -167,6 +195,7 @@ export class AuthDialog {
 
     const form = document.createElement('form');
     form.className = 'auth__form';
+    form.noValidate = true;
 
     const header = this.createHeader(
       'Create Account',
@@ -176,6 +205,7 @@ export class AuthDialog {
 
     const username = this.createField({
       id: 'auth-register-username',
+      field: 'register-username',
       label: 'Username',
       type: 'text',
       name: 'username',
@@ -186,6 +216,7 @@ export class AuthDialog {
 
     const email = this.createField({
       id: 'auth-register-email',
+      field: 'register-email',
       label: 'Email Address',
       type: 'email',
       name: 'email',
@@ -196,24 +227,24 @@ export class AuthDialog {
 
     const password = this.createField({
       id: 'auth-register-password',
+      field: 'register-password',
       label: 'Password',
       type: 'password',
       name: 'password',
-      placeholder: 'Min. 8 characters',
+      placeholder: 'Min. 6 characters',
       icon: lockUrl,
       autocomplete: 'new-password',
-      minLength: 8,
     });
 
     const confirm = this.createField({
       id: 'auth-register-confirm',
+      field: 'register-confirm',
       label: 'Confirm Password',
       type: 'password',
       name: 'confirm-password',
       placeholder: 'Repeat your password',
       icon: lockUrl,
       autocomplete: 'new-password',
-      minLength: 8,
     });
 
     form.append(
@@ -222,24 +253,13 @@ export class AuthDialog {
       email,
       password,
       confirm,
-      this.createSubmit('Create Account'),
+      this.createSubmit('Create Account', 'register'),
       this.createDivider(),
       this.createGoogleButton('Sign up with Google'),
       this.createFooter('Already have an account?', 'Login', 'login'),
     );
 
     form.addEventListener('submit', (event) => {
-      const passwordField = form.querySelector<HTMLInputElement>('#auth-register-password');
-      const confirmField = form.querySelector<HTMLInputElement>('#auth-register-confirm');
-
-      if (passwordField && confirmField && passwordField.value !== confirmField.value) {
-        event.preventDefault();
-        confirmField.setCustomValidity('Passwords do not match');
-        confirmField.reportValidity();
-        return;
-      }
-
-      confirmField?.setCustomValidity('');
       event.preventDefault();
     });
 
@@ -270,13 +290,13 @@ export class AuthDialog {
 
   private createField(options: {
     id: string;
+    field: AuthFieldKey;
     label: string;
     type: string;
     name: string;
     placeholder: string;
     icon: string;
     autocomplete: string;
-    minLength?: number;
     toggle?: boolean;
   }): HTMLDivElement {
     const field = document.createElement('div');
@@ -305,10 +325,19 @@ export class AuthDialog {
     input.placeholder = options.placeholder;
     input.setAttribute('autocomplete', options.autocomplete);
     input.required = true;
+    input.dataset.field = options.field;
+    input.setAttribute('aria-invalid', 'false');
+    input.addEventListener('input', this.onFieldEdit);
+    input.addEventListener('change', this.onFieldEdit);
+    input.addEventListener('blur', this.onFieldEdit);
 
-    if (options.minLength) {
-      input.minLength = options.minLength;
-    }
+    const error = document.createElement('p');
+    error.className = 'auth__error';
+    error.id = `${options.id}-error`;
+    error.hidden = true;
+    input.setAttribute('aria-describedby', error.id);
+
+    this.fields.set(options.field, { root: field, input, error, touched: false });
 
     wrapper.append(icon, input);
 
@@ -329,16 +358,23 @@ export class AuthDialog {
       wrapper.append(this.passwordToggle);
     }
 
-    field.append(label, wrapper);
+    field.append(label, wrapper, error);
 
     return field;
   }
 
-  private createSubmit(label: string): HTMLButtonElement {
+  private createSubmit(label: string, mode: AuthMode): HTMLButtonElement {
     const button = document.createElement('button');
     button.type = 'submit';
     button.className = 'auth__submit';
     button.textContent = label;
+    button.disabled = true;
+
+    if (mode === 'login') {
+      this.loginSubmit = button;
+    } else {
+      this.registerSubmit = button;
+    }
 
     return button;
   }
@@ -396,12 +432,6 @@ export class AuthDialog {
     this.registerTab?.addEventListener('click', () => this.chooseMode('register'));
     this.passwordToggle?.addEventListener('click', this.togglePassword);
     this.dialog?.addEventListener('click', this.onBackdropClick);
-
-    this.registerPanel
-      ?.querySelector<HTMLInputElement>('#auth-register-confirm')
-      ?.addEventListener('input', (event) => {
-        (event.currentTarget as HTMLInputElement).setCustomValidity('');
-      });
   }
 
   private chooseMode(mode: AuthMode): void {
@@ -431,8 +461,13 @@ export class AuthDialog {
   }
 
   private setMode(mode: AuthMode): void {
+    const modeChanged = this.mode !== mode;
     this.mode = mode;
     const isLogin = mode === 'login';
+
+    if (modeChanged) {
+      this.resetForms();
+    }
 
     this.loginTab?.classList.toggle('auth__tab--active', isLogin);
     this.registerTab?.classList.toggle('auth__tab--active', !isLogin);
@@ -447,6 +482,116 @@ export class AuthDialog {
       'aria-labelledby',
       isLogin ? 'auth-title-login' : 'auth-title-register',
     );
+  }
+
+  private onFieldEdit = (event: Event): void => {
+    const input = event.currentTarget;
+
+    if (!(input instanceof HTMLInputElement)) {
+      return;
+    }
+
+    const key = this.fieldKey(input.dataset.field);
+    if (!key) {
+      return;
+    }
+
+    const field = this.fields.get(key);
+    if (!field) {
+      return;
+    }
+
+    field.touched = true;
+    this.renderField(key);
+
+    if (key === 'register-password') {
+      this.renderField('register-confirm');
+    }
+
+    this.updateSubmitState();
+  };
+
+  private renderField(key: AuthFieldKey): void {
+    const field = this.fields.get(key);
+    if (!field) {
+      return;
+    }
+
+    const message = field.touched ? this.messageFor(key) : '';
+    field.error.textContent = message;
+    field.error.hidden = message.length === 0;
+    field.input.setAttribute('aria-invalid', message.length > 0 ? 'true' : 'false');
+    field.root.classList.toggle('auth__field--invalid', message.length > 0);
+  }
+
+  private messageFor(key: AuthFieldKey): string {
+    const value = this.fieldValue(key);
+    const password = this.fieldValue('register-password');
+
+    switch (key) {
+      case 'login-email':
+      case 'register-email':
+        return validateEmail(value);
+      case 'register-username':
+        return validateUsername(value);
+      case 'login-password':
+        return validateLoginPassword(value);
+      case 'register-password':
+        return validateRegisterPassword(value);
+      case 'register-confirm':
+        return validateConfirmPassword(password, value);
+      default:
+        return '';
+    }
+  }
+
+  private updateSubmitState(): void {
+    if (this.loginSubmit) {
+      this.loginSubmit.disabled = !isLoginFormValid(
+        this.fieldValue('login-email'),
+        this.fieldValue('login-password'),
+      );
+    }
+
+    if (this.registerSubmit) {
+      this.registerSubmit.disabled = !isRegisterFormValid(
+        this.fieldValue('register-username'),
+        this.fieldValue('register-email'),
+        this.fieldValue('register-password'),
+        this.fieldValue('register-confirm'),
+      );
+    }
+  }
+
+  private resetForms(): void {
+    for (const field of this.fields.values()) {
+      field.input.value = '';
+      field.touched = false;
+      field.error.textContent = '';
+      field.error.hidden = true;
+      field.input.setAttribute('aria-invalid', 'false');
+      field.root.classList.remove('auth__field--invalid');
+    }
+
+    this.updateSubmitState();
+  }
+
+  private fieldValue(key: AuthFieldKey): string {
+    return this.fields.get(key)?.input.value ?? '';
+  }
+
+  private fieldKey(value: string | undefined): AuthFieldKey | null {
+    switch (value) {
+      case 'login-email':
+      case 'login-password':
+      case 'register-username':
+      case 'register-email':
+      case 'register-password':
+      case 'register-confirm':
+        return value;
+      default:
+        return null;
+    }
   }
 
   private togglePassword = (): void => {
