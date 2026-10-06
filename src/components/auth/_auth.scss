@@ -53,6 +53,14 @@
   color: $color-white;
 }
 
+.auth__tab:disabled,
+.auth__google:disabled,
+.auth__link:disabled,
+.auth__toggle:disabled {
+  opacity: $opacity-muted;
+  cursor: default;
+}
+
 .auth__form {
   display: flex;
   flex-direction: column;
@@ -140,6 +148,10 @@
 
 .auth__input::placeholder {
   color: $color-on-bg;
+}
+
+.auth__input:disabled {
+  opacity: $opacity-muted;
 }
 
 .auth__toggle {

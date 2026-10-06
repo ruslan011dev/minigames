@@ -1,4 +1,11 @@
 import { AuthDialog, type AuthMode } from '../components/auth/auth';
+import {
+  authenticateWithEmail,
+  AuthRequestError,
+  type EmailAuthRequest,
+  signOutPreservedUser,
+} from '../firebase/email-auth';
+import { clearAppSession, readAppSession, saveAppSession } from '../session/app-session';
 import { GameDetailsDialog } from '../components/game-details/game-details';
 import { Footer } from '../components/footer/footer';
 import { Header } from '../components/header/header';
@@ -39,9 +46,15 @@ export class App {
     this.auth = new AuthDialog(
       () => this.router.dismissDialog(),
       (mode) => this.openAuth(mode),
+      (request) => this.authenticate(request),
     );
     this.details = new GameDetailsDialog(() => this.router.dismissDialog());
-    this.header = new Header((mode) => this.openAuth(mode));
+    this.header = new Header(
+      (mode) => this.openAuth(mode),
+      () => {
+        void this.logout();
+      },
+    );
 
     const main = document.createElement('main');
     main.className = 'content';
@@ -64,8 +77,52 @@ export class App {
       snackbar.render(),
     );
     app.addEventListener('click', this.onLinkClick);
+    this.restoreSession();
 
     return app;
+  }
+
+  private async authenticate(request: EmailAuthRequest): Promise<void> {
+    const profile = await authenticateWithEmail(request);
+
+    try {
+      const session = saveAppSession(profile);
+      this.header?.setSession(session);
+    } catch {
+      await signOutPreservedUser().catch(() => undefined);
+      throw new AuthRequestError('Could not save the session.');
+    }
+
+    snackbar.show(request.mode === 'login' ? 'Signed in.' : 'Account created.', 'success');
+  }
+
+  private async logout(): Promise<void> {
+    clearAppSession();
+    this.header?.setSession(null);
+
+    try {
+      await signOutPreservedUser();
+      snackbar.show('Signed out.', 'success');
+    } catch {
+      snackbar.show('Could not sign out of the account.', 'error');
+    }
+  }
+
+  private restoreSession(): void {
+    const result = readAppSession();
+
+    if (result.status === 'active') {
+      this.header?.setSession(result.session);
+      return;
+    }
+
+    if (result.status === 'expired') {
+      snackbar.show('Your session has expired. Sign in again.', 'warning');
+    }
+
+    void signOutPreservedUser().catch(() => {
+      snackbar.show('Could not sign out of the account.', 'error');
+    });
   }
 
   private onLinkClick = (event: MouseEvent): void => {
