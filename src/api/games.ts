@@ -1,4 +1,4 @@
-import { ApiError, apiGet, isRecord } from './client';
+import { ApiError, apiGet, apiPost, isRecord } from './client';
 
 export const LIBRARY_PAGE_SIZE = 6;
 
@@ -101,14 +101,50 @@ export type GameDetails = {
   topRecords: GameRecord[];
 };
 
-export async function getGame(slug: string, signal?: AbortSignal): Promise<GameDetails> {
-  const body = await apiGet(`/api/games/${encodeURIComponent(slug)}`, undefined, signal);
+export async function getGame(
+  slug: string,
+  signal?: AbortSignal,
+  userEmail?: string,
+): Promise<GameDetails> {
+  const query = userEmail ? { userEmail } : undefined;
+  const body = await apiGet(`/api/games/${encodeURIComponent(slug)}`, query, signal);
 
   if (!isRecord(body) || !isGameDetails(body.data)) {
     throw new ApiError('Unexpected response from the server.', 0);
   }
 
   return body.data;
+}
+
+export type FavoriteUpdate = {
+  isFavorited: boolean;
+  likesCount: number;
+};
+
+export async function toggleGameFavorite(
+  slug: string,
+  userEmail: string,
+  signal?: AbortSignal,
+): Promise<FavoriteUpdate> {
+  const body = await apiPost(
+    `/api/games/${encodeURIComponent(slug)}/favorite`,
+    { userEmail },
+    signal,
+  );
+
+  if (!isRecord(body) || !isFavoriteUpdate(body.data)) {
+    throw new ApiError('Unexpected response from the server.', 0);
+  }
+
+  return body.data;
+}
+
+function isFavoriteUpdate(value: unknown): value is FavoriteUpdate {
+  return (
+    isRecord(value) &&
+    typeof value.isFavorited === 'boolean' &&
+    typeof value.likesCount === 'number'
+  );
 }
 
 function readPageMeta(value: unknown): { page: number; totalPages: number } {

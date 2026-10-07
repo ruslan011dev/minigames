@@ -4,7 +4,8 @@ import sendUrl from '../../assets/icons/send.svg?url';
 import starUrl from '../../assets/icons/star.svg?url';
 import { ApiError, isAbortError } from '../../api/client';
 import { getGameComments, type GameComment, type GameComments } from '../../api/comments';
-import { getGame, type GameDetails, type GameRecord } from '../../api/games';
+import { getGame, toggleGameFavorite, type GameDetails, type GameRecord } from '../../api/games';
+import type { AppSession } from '../../session/app-session';
 import { createEmptyState, createErrorBanner } from '../feedback/feedback';
 import { snackbar } from '../snackbar/snackbar';
 import {
@@ -27,6 +28,7 @@ const COMMENT_PLACEHOLDER = 'Write a comment...';
 
 const FAVORITE_ADD = 'Add to Favorites';
 const FAVORITE_REMOVE = 'Remove from Favorites';
+const FAVORITE_SAVING = 'Saving...';
 
 export class GameDetailsDialog {
   private dialog: HTMLDialogElement | null = null;
@@ -34,7 +36,11 @@ export class GameDetailsDialog {
   private panel: HTMLElement | null = null;
   private favoriteButton: HTMLButtonElement | null = null;
   private favoriteLabel: HTMLElement | null = null;
+  private likesStat: HTMLElement | null = null;
   private favorite = false;
+  private favoritePending = false;
+  private favoriteController: AbortController | null = null;
+  private viewerEmail: string | null = null;
   private commentField: HTMLTextAreaElement | null = null;
   private likeButtons: HTMLButtonElement[] = [];
   private controller: AbortController | null = null;
@@ -48,7 +54,10 @@ export class GameDetailsDialog {
   private hadError = false;
   private hadCommentsError = false;
 
-  constructor(private readonly onDismiss?: () => void) {}
+  constructor(
+    private readonly onDismiss?: () => void,
+    private readonly onRequestFavorite?: () => AppSession | null,
+  ) {}
 
   public render(): HTMLDialogElement {
     const dialog = document.createElement('dialog');
@@ -67,12 +76,13 @@ export class GameDetailsDialog {
     return dialog;
   }
 
-  public open(slug: string): void {
-    if (this.dialog?.open && this.slug === slug) {
+  public open(slug: string, userEmail: string | null = null): void {
+    if (this.dialog?.open && this.slug === slug && this.viewerEmail === userEmail) {
       return;
     }
 
     this.slug = slug;
+    this.viewerEmail = userEmail;
 
     if (!this.dialog?.open) {
       this.dialog?.showModal();
@@ -102,13 +112,15 @@ export class GameDetailsDialog {
   private fetchGame = async (): Promise<void> => {
     this.controller?.abort();
     this.commentsController?.abort();
+    this.favoriteController?.abort();
+    this.favoriteController = null;
     const controller = new AbortController();
     this.controller = controller;
     this.showLoading();
     void this.fetchComments(this.slug, controller.signal);
 
     try {
-      const game = await getGame(this.slug, controller.signal);
+      const game = await getGame(this.slug, controller.signal, this.viewerEmail ?? undefined);
 
       if (controller.signal.aborted || !this.dialog?.open) {
         return;
@@ -140,6 +152,10 @@ export class GameDetailsDialog {
 
     this.commentsTitle = null;
     this.commentsPanel = null;
+    this.favoriteButton = null;
+    this.favoriteLabel = null;
+    this.likesStat = null;
+    this.favoritePending = false;
     this.dialog.setAttribute('aria-busy', 'true');
     this.panel.replaceChildren(this.createSkeleton());
   }
@@ -174,6 +190,8 @@ export class GameDetailsDialog {
     this.commentField = null;
     this.dialog.removeAttribute('aria-busy');
     this.panel.replaceChildren(this.createHero(game), this.createBody(game));
+    this.setFavorite(game.isLikedByCurrentUser);
+    this.setLikes(game.likesCount);
   }
 
   private createSkeleton(): HTMLElement {
@@ -263,6 +281,10 @@ export class GameDetailsDialog {
     const stat = document.createElement('p');
     stat.className = 'details__stat';
     stat.setAttribute('aria-label', `${name} ${value}`);
+
+    if (name === 'Likes') {
+      this.likesStat = stat;
+    }
 
     const icon = document.createElement('img');
     icon.src = iconUrl;
@@ -657,8 +679,53 @@ export class GameDetailsDialog {
   }
 
   private onFavoriteClick = (): void => {
-    this.setFavorite(!this.favorite);
+    if (this.favoritePending) {
+      return;
+    }
+
+    const session = this.onRequestFavorite?.() ?? null;
+
+    if (!session) {
+      return;
+    }
+
+    void this.sendFavorite(session.email);
   };
+
+  private async sendFavorite(email: string): Promise<void> {
+    this.favoriteController?.abort();
+    const controller = new AbortController();
+    this.favoriteController = controller;
+    this.setFavoritePending(true);
+
+    try {
+      const update = await toggleGameFavorite(this.slug, email, controller.signal);
+
+      if (controller.signal.aborted || !this.dialog?.open) {
+        return;
+      }
+
+      this.setFavorite(update.isFavorited);
+      this.setLikes(update.likesCount);
+    } catch (error) {
+      if (isAbortError(error) || controller.signal.aborted) {
+        return;
+      }
+
+      const unknown = error instanceof ApiError && error.status === 0;
+      const message = unknown
+        ? 'Could not confirm the favorite update.'
+        : error instanceof ApiError
+          ? error.message
+          : 'Could not update favorites.';
+      snackbar.show(message, unknown ? 'warning' : 'error');
+    } finally {
+      if (this.favoriteController === controller) {
+        this.favoriteController = null;
+        this.setFavoritePending(false);
+      }
+    }
+  }
 
   private onCommentInput = (): void => {
     this.resizeComment();
@@ -722,6 +789,11 @@ export class GameDetailsDialog {
 
   private setFavorite(active: boolean): void {
     this.favorite = active;
+
+    if (this.favoritePending) {
+      return;
+    }
+
     const text = active ? FAVORITE_REMOVE : FAVORITE_ADD;
     this.favoriteButton?.classList.toggle('details__favorite--active', active);
     this.favoriteButton?.setAttribute('aria-pressed', String(active));
@@ -729,6 +801,44 @@ export class GameDetailsDialog {
 
     if (this.favoriteLabel) {
       this.favoriteLabel.textContent = text;
+    }
+  }
+
+  private setFavoritePending(pending: boolean): void {
+    this.favoritePending = pending;
+
+    if (!this.favoriteButton) {
+      return;
+    }
+
+    this.favoriteButton.disabled = pending;
+    this.favoriteButton.setAttribute('aria-busy', String(pending));
+
+    if (!pending) {
+      this.setFavorite(this.favorite);
+      return;
+    }
+
+    this.favoriteButton.setAttribute('aria-label', FAVORITE_SAVING);
+
+    if (this.favoriteLabel) {
+      this.favoriteLabel.textContent = FAVORITE_SAVING;
+    }
+  }
+
+  private setLikes(count: number): void {
+    const stat = this.likesStat;
+
+    if (!stat) {
+      return;
+    }
+
+    const label = formatCompactCount(count);
+    stat.setAttribute('aria-label', `Likes ${label}`);
+    const text = [...stat.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
+
+    if (text) {
+      text.textContent = label;
     }
   }
 

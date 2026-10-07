@@ -12,6 +12,7 @@ import {
   saveAppSession,
   type AppSession,
   type SessionProfile,
+  type SessionRead,
 } from '../session/app-session';
 import { GameDetailsDialog } from '../components/game-details/game-details';
 import { Footer } from '../components/footer/footer';
@@ -58,7 +59,10 @@ export class App {
       (request) => this.authenticate(request),
       () => this.signInWithGoogleAccount(),
     );
-    this.details = new GameDetailsDialog(() => this.router.dismissDialog());
+    this.details = new GameDetailsDialog(
+      () => this.router.dismissDialog(),
+      () => this.sessionForFavorite(),
+    );
     this.header = new Header(
       (mode) => this.openAuth(mode),
       () => {
@@ -134,14 +138,14 @@ export class App {
     this.enforceSession();
   };
 
-  private enforceSession(): void {
+  private enforceSession(): SessionRead {
     const startup = !this.startupSettled;
     this.startupSettled = true;
     const result = readAppSession();
 
     if (result.status === 'active') {
       this.showSession(result.session);
-      return;
+      return result;
     }
 
     if (result.status === 'expired') {
@@ -156,6 +160,25 @@ export class App {
         snackbar.show('Could not sign out of the account.', 'error');
       });
     }
+
+    return result;
+  }
+
+  private sessionForFavorite(): AppSession | null {
+    const result = this.enforceSession();
+
+    if (result.status === 'active') {
+      return result.session;
+    }
+
+    this.openAuth('login');
+    snackbar.show(
+      result.status === 'expired'
+        ? 'Your session has expired. Sign in again.'
+        : 'Sign in to save favorites.',
+      'warning',
+    );
+    return null;
   }
 
   private showSession(session: AppSession | null): void {
@@ -354,7 +377,9 @@ export class App {
   private syncDialog(location: AppLocation): void {
     if (location.dialog.kind === 'game') {
       this.auth?.dismiss();
-      this.details?.open(location.dialog.slug);
+      const session = readAppSession();
+      const email = session.status === 'active' ? session.session.email : null;
+      this.details?.open(location.dialog.slug, email);
       return;
     }
 
