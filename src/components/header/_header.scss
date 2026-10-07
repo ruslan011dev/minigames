@@ -158,6 +158,48 @@
   }
 }
 
+.header__identity {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  min-width: 0;
+}
+
+.header__avatar {
+  display: grid;
+  flex-shrink: 0;
+  width: $spacing-3xl;
+  height: $spacing-3xl;
+  place-items: center;
+  overflow: hidden;
+  border-radius: $radius-xl;
+  background-color: $color-avatar-3;
+  color: $color-on-primary;
+  font-size: $font-size-label;
+  font-weight: $font-weight-bold;
+}
+
+.header__avatar-image,
+.header__avatar-initials,
+.header__avatar-icon {
+  grid-area: 1 / 1;
+}
+
+.header__avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.header__avatar-icon {
+  width: $icon-size-sm;
+  height: $icon-size-sm;
+}
+
+.header__avatar [hidden] {
+  display: none;
+}
+
 .header__name,
 .menu__name {
   margin: 0;

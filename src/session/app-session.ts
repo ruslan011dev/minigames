@@ -37,6 +37,28 @@ export function profileLabel(displayName: string, email: string): string {
   return FALLBACK_PROFILE_NAME;
 }
 
+export function profileInitials(name: string): string {
+  const words = name
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word.length > 0);
+  const count = words.length >= 2 ? 2 : 1;
+  let initials = '';
+
+  for (const word of words.slice(0, count)) {
+    const character = firstAlphanumeric(word);
+    if (character) {
+      initials += character.toUpperCase();
+    }
+  }
+
+  return initials;
+}
+
+function firstAlphanumeric(word: string): string {
+  return word.match(/\p{L}|\p{N}/u)?.[0] ?? '';
+}
+
 export function saveAppSession(profile: SessionProfile, authenticatedAt = Date.now()): AppSession {
   const session: AppSession = {
     displayName: profile.displayName,
