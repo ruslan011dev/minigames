@@ -10,9 +10,12 @@ import { readAppSession, type SessionProfile } from '../session/app-session';
 import { firebaseAuth } from './firebase';
 
 export class AuthRequestError extends Error {
-  constructor(message: string) {
+  readonly canceled: boolean;
+
+  constructor(message: string, canceled = false) {
     super(message);
     this.name = 'AuthRequestError';
+    this.canceled = canceled;
   }
 }
 

@@ -4,7 +4,7 @@ import mailUrl from '../../assets/icons/mail.svg?url';
 import personUrl from '../../assets/icons/person.svg?url';
 import visibilityOffUrl from '../../assets/icons/visibility-off.svg?url';
 import visibilityUrl from '../../assets/icons/visibility.svg?url';
-import { type EmailAuthRequest } from '../../firebase/email-auth';
+import { AuthRequestError, type EmailAuthRequest } from '../../firebase/email-auth';
 import { snackbar } from '../snackbar/snackbar';
 import {
   isLoginFormValid,
@@ -52,6 +52,7 @@ export class AuthDialog {
     private readonly onDismiss?: () => void,
     private readonly onModeChange?: (mode: AuthMode) => void,
     private readonly onSubmit?: (request: EmailAuthRequest) => Promise<void>,
+    private readonly onGoogle?: () => Promise<void>,
   ) {}
 
   public render(): HTMLDialogElement {
@@ -412,6 +413,9 @@ export class AuthDialog {
     text.textContent = label;
 
     button.append(icon, text);
+    button.addEventListener('click', () => {
+      void this.submitGoogle();
+    });
 
     return button;
   }
@@ -644,15 +648,33 @@ export class AuthDialog {
       return;
     }
 
-    this.setPending(true);
+    await this.runPending(() => this.onSubmit?.(request) ?? Promise.resolve(), 'email');
+  }
+
+  private async submitGoogle(): Promise<void> {
+    if (this.pending || !this.onGoogle) {
+      return;
+    }
+
+    await this.runPending(() => this.onGoogle?.() ?? Promise.resolve(), 'google');
+  }
+
+  private async runPending(action: () => Promise<void>, source: 'email' | 'google'): Promise<void> {
+    this.setPending(true, source);
 
     try {
-      await this.onSubmit(request);
-      this.setPending(false);
+      await action();
+      this.setPending(false, source);
       this.resetForms();
       this.close();
     } catch (error) {
-      this.setPending(false);
+      this.setPending(false, source);
+
+      if (error instanceof AuthRequestError && error.canceled) {
+        snackbar.show(error.message, 'info');
+        return;
+      }
+
       const message = error instanceof Error ? error.message : 'Could not sign in.';
       snackbar.show(message, 'error');
     }
@@ -690,7 +712,7 @@ export class AuthDialog {
     };
   }
 
-  private setPending(pending: boolean): void {
+  private setPending(pending: boolean, source: 'email' | 'google'): void {
     this.pending = pending;
     this.dialog?.setAttribute('aria-busy', String(pending));
 
@@ -703,13 +725,28 @@ export class AuthDialog {
     });
 
     if (this.loginSubmit) {
-      this.loginSubmit.textContent = pending && this.mode === 'login' ? 'Signing in...' : 'Login';
+      const signingIn = pending && source === 'email' && this.mode === 'login';
+      this.loginSubmit.textContent = signingIn ? 'Signing in...' : 'Login';
     }
 
     if (this.registerSubmit) {
-      this.registerSubmit.textContent =
-        pending && this.mode === 'register' ? 'Creating account...' : 'Create Account';
+      const creating = pending && source === 'email' && this.mode === 'register';
+      this.registerSubmit.textContent = creating ? 'Creating account...' : 'Create Account';
     }
+
+    this.dialog?.querySelectorAll<HTMLButtonElement>('.auth__google').forEach((button) => {
+      const label = button.querySelector('span');
+      if (!label) {
+        return;
+      }
+
+      if (!button.dataset.label) {
+        button.dataset.label = label.textContent ?? '';
+      }
+
+      label.textContent =
+        pending && source === 'google' ? 'Signing in...' : (button.dataset.label ?? '');
+    });
 
     if (!pending) {
       this.updateSubmitState();

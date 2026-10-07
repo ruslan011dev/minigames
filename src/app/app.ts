@@ -5,7 +5,13 @@ import {
   type EmailAuthRequest,
   signOutPreservedUser,
 } from '../firebase/email-auth';
-import { clearAppSession, readAppSession, saveAppSession } from '../session/app-session';
+import { signInWithGoogle } from '../firebase/google-auth';
+import {
+  clearAppSession,
+  readAppSession,
+  saveAppSession,
+  type SessionProfile,
+} from '../session/app-session';
 import { GameDetailsDialog } from '../components/game-details/game-details';
 import { Footer } from '../components/footer/footer';
 import { Header } from '../components/header/header';
@@ -47,6 +53,7 @@ export class App {
       () => this.router.dismissDialog(),
       (mode) => this.openAuth(mode),
       (request) => this.authenticate(request),
+      () => this.signInWithGoogleAccount(),
     );
     this.details = new GameDetailsDialog(() => this.router.dismissDialog());
     this.header = new Header(
@@ -84,7 +91,17 @@ export class App {
 
   private async authenticate(request: EmailAuthRequest): Promise<void> {
     const profile = await authenticateWithEmail(request);
+    await this.keepSession(profile);
+    snackbar.show(request.mode === 'login' ? 'Signed in.' : 'Account created.', 'success');
+  }
 
+  private async signInWithGoogleAccount(): Promise<void> {
+    const profile = await signInWithGoogle();
+    await this.keepSession(profile);
+    snackbar.show('Signed in with Google.', 'success');
+  }
+
+  private async keepSession(profile: SessionProfile): Promise<void> {
     try {
       const session = saveAppSession(profile);
       this.header?.setSession(session);
@@ -92,8 +109,6 @@ export class App {
       await signOutPreservedUser().catch(() => undefined);
       throw new AuthRequestError('Could not save the session.');
     }
-
-    snackbar.show(request.mode === 'login' ? 'Signed in.' : 'Account created.', 'success');
   }
 
   private async logout(): Promise<void> {
