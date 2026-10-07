@@ -8,6 +8,7 @@ import {
 import { signInWithGoogle } from '../firebase/google-auth';
 import {
   clearAppSession,
+  profileLabel,
   readAppSession,
   saveAppSession,
   type AppSession,
@@ -61,7 +62,8 @@ export class App {
     );
     this.details = new GameDetailsDialog(
       () => this.router.dismissDialog(),
-      () => this.sessionForFavorite(),
+      () => this.sessionForAction('Sign in to save favorites.'),
+      () => this.sessionForAction('Sign in to write a comment.'),
     );
     this.header = new Header(
       (mode) => this.openAuth(mode),
@@ -164,7 +166,7 @@ export class App {
     return result;
   }
 
-  private sessionForFavorite(): AppSession | null {
+  private sessionForAction(guestMessage: string): AppSession | null {
     const result = this.enforceSession();
 
     if (result.status === 'active') {
@@ -173,9 +175,7 @@ export class App {
 
     this.openAuth('login');
     snackbar.show(
-      result.status === 'expired'
-        ? 'Your session has expired. Sign in again.'
-        : 'Sign in to save favorites.',
+      result.status === 'expired' ? 'Your session has expired. Sign in again.' : guestMessage,
       'warning',
     );
     return null;
@@ -379,7 +379,11 @@ export class App {
       this.auth?.dismiss();
       const session = readAppSession();
       const email = session.status === 'active' ? session.session.email : null;
-      this.details?.open(location.dialog.slug, email);
+      const name =
+        session.status === 'active'
+          ? profileLabel(session.session.displayName, session.session.email)
+          : '';
+      this.details?.open(location.dialog.slug, email, name);
       return;
     }
 
