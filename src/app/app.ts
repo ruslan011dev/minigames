@@ -10,6 +10,7 @@ import {
   clearAppSession,
   readAppSession,
   saveAppSession,
+  type AppSession,
   type SessionProfile,
 } from '../session/app-session';
 import { GameDetailsDialog } from '../components/game-details/game-details';
@@ -34,6 +35,8 @@ export class App {
   private header: Header | null = null;
   private auth: AuthDialog | null = null;
   private details: GameDetailsDialog | null = null;
+  private startupSettled = false;
+  private shownAt: number | null = null;
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -84,7 +87,7 @@ export class App {
       snackbar.render(),
     );
     app.addEventListener('click', this.onLinkClick);
-    this.restoreSession();
+    document.addEventListener('visibilitychange', this.onPageActive);
 
     return app;
   }
@@ -104,7 +107,7 @@ export class App {
   private async keepSession(profile: SessionProfile): Promise<void> {
     try {
       const session = saveAppSession(profile);
-      this.header?.setSession(session);
+      this.showSession(session);
     } catch {
       await signOutPreservedUser().catch(() => undefined);
       throw new AuthRequestError('Could not save the session.');
@@ -113,7 +116,7 @@ export class App {
 
   private async logout(): Promise<void> {
     clearAppSession();
-    this.header?.setSession(null);
+    this.showSession(null);
 
     try {
       await signOutPreservedUser();
@@ -123,21 +126,55 @@ export class App {
     }
   }
 
-  private restoreSession(): void {
+  private onPageActive = (): void => {
+    if (document.visibilityState !== 'visible') {
+      return;
+    }
+
+    this.enforceSession();
+  };
+
+  private enforceSession(): void {
+    const startup = !this.startupSettled;
+    this.startupSettled = true;
     const result = readAppSession();
 
     if (result.status === 'active') {
-      this.header?.setSession(result.session);
+      this.showSession(result.session);
       return;
     }
 
     if (result.status === 'expired') {
+      this.showSession(null);
       snackbar.show('Your session has expired. Sign in again.', 'warning');
+    } else if (result.status === 'invalid') {
+      this.showSession(null);
     }
 
-    void signOutPreservedUser().catch(() => {
-      snackbar.show('Could not sign out of the account.', 'error');
-    });
+    if (startup || result.status === 'expired' || result.status === 'invalid') {
+      void signOutPreservedUser().catch(() => {
+        snackbar.show('Could not sign out of the account.', 'error');
+      });
+    }
+  }
+
+  private showSession(session: AppSession | null): void {
+    if (session === null) {
+      if (this.shownAt === null) {
+        return;
+      }
+
+      this.shownAt = null;
+      this.header?.setSession(null);
+      return;
+    }
+
+    if (this.shownAt === session.authenticatedAt) {
+      return;
+    }
+
+    this.shownAt = session.authenticatedAt;
+    this.header?.setSession(session);
   }
 
   private onLinkClick = (event: MouseEvent): void => {
@@ -176,6 +213,7 @@ export class App {
   };
 
   private openPage(pageId: PageId): void {
+    this.enforceSession();
     this.header?.dismissMenu();
     const current = this.router.current();
 
@@ -194,7 +232,14 @@ export class App {
   }
 
   private openAuth(mode: AuthMode): void {
+    this.enforceSession();
     this.header?.dismissMenu();
+
+    if (readAppSession().status === 'active') {
+      snackbar.show('You are already signed in.', 'info');
+      return;
+    }
+
     this.router.navigate({
       ...this.router.current(),
       dialog: { kind: 'auth', mode },
@@ -202,6 +247,7 @@ export class App {
   }
 
   private openGame(slug: string): void {
+    this.enforceSession();
     this.router.navigate({
       ...this.router.current(),
       dialog: { kind: 'game', slug },
@@ -209,6 +255,7 @@ export class App {
   }
 
   private onLibraryNavigate = (query: LibraryLocation): void => {
+    this.enforceSession();
     this.router.navigate({
       ...this.router.current(),
       page: 'library',
@@ -218,9 +265,21 @@ export class App {
     });
   };
 
-  private apply(location: AppLocation): void {
-    this.syncPage(location);
-    this.syncDialog(location);
+  private apply(location: AppLocation): AppLocation {
+    this.enforceSession();
+    const next = this.allowAuth(location);
+    this.syncPage(next);
+    this.syncDialog(next);
+    return next;
+  }
+
+  private allowAuth(location: AppLocation): AppLocation {
+    if (location.dialog.kind !== 'auth' || readAppSession().status !== 'active') {
+      return location;
+    }
+
+    snackbar.show('You are already signed in.', 'info');
+    return { ...location, dialog: { kind: 'none' } };
   }
 
   private syncPage(location: AppLocation): void {

@@ -32,7 +32,7 @@ export function homeLocation(): AppLocation {
 export class Router {
   private location: AppLocation = homeLocation();
 
-  constructor(private readonly onChange: (location: AppLocation) => void) {}
+  constructor(private readonly onChange: (location: AppLocation) => AppLocation) {}
 
   public start(): void {
     window.addEventListener('popstate', this.onPop);
@@ -43,9 +43,7 @@ export class Router {
       return;
     }
 
-    this.location = next;
-    this.remember(next);
-    this.onChange(next);
+    this.commit(next, true);
   }
 
   public current(): AppLocation {
@@ -93,9 +91,28 @@ export class Router {
       return;
     }
 
-    this.location = next;
-    this.onChange(next);
+    this.commit(next, false);
   };
+
+  private commit(next: AppLocation, initial: boolean): void {
+    const revised = this.onChange(next);
+    this.location = revised;
+
+    if (next.dialog.kind === 'auth' && revised.dialog.kind !== 'auth') {
+      this.deleteAuthParam();
+      return;
+    }
+
+    if (initial) {
+      this.remember(revised);
+    }
+  }
+
+  private deleteAuthParam(): void {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('auth');
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  }
 
   private showMissing(): void {
     this.location = {
