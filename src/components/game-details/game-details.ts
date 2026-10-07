@@ -3,9 +3,15 @@ import heartUrl from '../../assets/icons/heart.svg?url';
 import sendUrl from '../../assets/icons/send.svg?url';
 import starUrl from '../../assets/icons/star.svg?url';
 import { ApiError, isAbortError } from '../../api/client';
-import { getGameComments, type GameComment, type GameComments } from '../../api/comments';
+import {
+  COMMENT_TEXT_MAX,
+  getGameComments,
+  postGameComment,
+  type GameComment,
+  type GameComments,
+} from '../../api/comments';
 import { getGame, toggleGameFavorite, type GameDetails, type GameRecord } from '../../api/games';
-import type { AppSession } from '../../session/app-session';
+import { commentAuthorName, type AppSession } from '../../session/app-session';
 import { createEmptyState, createErrorBanner } from '../feedback/feedback';
 import { snackbar } from '../snackbar/snackbar';
 import {
@@ -42,6 +48,12 @@ export class GameDetailsDialog {
   private favoriteController: AbortController | null = null;
   private viewerEmail: string | null = null;
   private commentField: HTMLTextAreaElement | null = null;
+  private commentSend: HTMLButtonElement | null = null;
+  private commentPending = false;
+  private commentDraft = '';
+  private draftSlug = '';
+  private commentController: AbortController | null = null;
+  private profileName = '';
   private likeButtons: HTMLButtonElement[] = [];
   private controller: AbortController | null = null;
   private commentsController: AbortController | null = null;
@@ -57,6 +69,7 @@ export class GameDetailsDialog {
   constructor(
     private readonly onDismiss?: () => void,
     private readonly onRequestFavorite?: () => AppSession | null,
+    private readonly onRequestComment?: () => AppSession | null,
   ) {}
 
   public render(): HTMLDialogElement {
@@ -76,13 +89,19 @@ export class GameDetailsDialog {
     return dialog;
   }
 
-  public open(slug: string, userEmail: string | null = null): void {
-    if (this.dialog?.open && this.slug === slug && this.viewerEmail === userEmail) {
+  public open(slug: string, userEmail: string | null = null, profileName = ''): void {
+    if (
+      this.dialog?.open &&
+      this.slug === slug &&
+      this.viewerEmail === userEmail &&
+      this.profileName === profileName
+    ) {
       return;
     }
 
     this.slug = slug;
     this.viewerEmail = userEmail;
+    this.profileName = profileName;
 
     if (!this.dialog?.open) {
       this.dialog?.showModal();
@@ -114,6 +133,9 @@ export class GameDetailsDialog {
     this.commentsController?.abort();
     this.favoriteController?.abort();
     this.favoriteController = null;
+    this.commentController?.abort();
+    this.commentController = null;
+    this.commentPending = false;
     const controller = new AbortController();
     this.controller = controller;
     this.showLoading();
@@ -192,6 +214,7 @@ export class GameDetailsDialog {
     this.panel.replaceChildren(this.createHero(game), this.createBody(game));
     this.setFavorite(game.isLikedByCurrentUser);
     this.setLikes(game.likesCount);
+    this.resizeComment();
   }
 
   private createSkeleton(): HTMLElement {
@@ -445,7 +468,7 @@ export class GameDetailsDialog {
     this.paintComments();
 
     try {
-      const result = await getGameComments(slug, controller.signal);
+      const result = await getGameComments(slug, controller.signal, this.viewerEmail ?? undefined);
 
       if (controller.signal.aborted || slug !== this.slug) {
         return;
@@ -576,20 +599,28 @@ export class GameDetailsDialog {
     const avatar = document.createElement('span');
     avatar.className = 'details__avatar';
     avatar.setAttribute('aria-hidden', 'true');
-    avatar.textContent = 'U';
+    avatar.textContent = composerMark(this.profileName);
 
+    const signedIn = this.viewerEmail !== null;
     const field = document.createElement('textarea');
     field.className = 'details__field';
     field.rows = 1;
     field.placeholder = COMMENT_PLACEHOLDER;
     field.setAttribute('aria-label', COMMENT_PLACEHOLDER);
+    field.disabled = !signedIn;
+    if (this.draftSlug === this.slug) {
+      field.value = this.commentDraft;
+    }
     field.addEventListener('input', this.onCommentInput);
+    field.addEventListener('keydown', this.onCommentKeyDown);
     this.commentField = field;
 
     const send = document.createElement('button');
     send.type = 'submit';
     send.className = 'details__send';
     send.setAttribute('aria-label', 'Send comment');
+    send.disabled = !signedIn;
+    this.commentSend = send;
 
     const icon = document.createElement('img');
     icon.src = sendUrl;
@@ -728,19 +759,99 @@ export class GameDetailsDialog {
   }
 
   private onCommentInput = (): void => {
+    if (this.commentField) {
+      this.commentDraft = this.commentField.value;
+      this.draftSlug = this.slug;
+    }
+
     this.resizeComment();
+  };
+
+  private onCommentKeyDown = (event: KeyboardEvent): void => {
+    if (event.key !== 'Enter' || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+    this.commentField?.form?.requestSubmit();
   };
 
   private onSendComment = (event: Event): void => {
     event.preventDefault();
 
-    if (!this.commentField || this.commentField.value.trim() === '') {
+    if (this.commentPending || !this.commentField) {
       return;
     }
 
-    this.commentField.value = '';
-    this.resizeComment();
+    const text = this.commentField.value.trim();
+
+    if (text.length === 0) {
+      snackbar.show('Write a comment before sending.', 'warning');
+      return;
+    }
+
+    if (text.length > COMMENT_TEXT_MAX) {
+      snackbar.show('A comment can be at most 500 characters.', 'warning');
+      return;
+    }
+
+    const session = this.onRequestComment?.() ?? null;
+
+    if (!session) {
+      return;
+    }
+
+    void this.sendComment(session, text);
   };
+
+  private async sendComment(session: AppSession, text: string): Promise<void> {
+    this.commentController?.abort();
+    const controller = new AbortController();
+    this.commentController = controller;
+    this.setCommentPending(true);
+
+    try {
+      await postGameComment(
+        this.slug,
+        {
+          userEmail: session.email,
+          authorName: commentAuthorName(session.displayName, session.email),
+          text,
+        },
+        controller.signal,
+      );
+
+      if (controller.signal.aborted || !this.dialog?.open) {
+        return;
+      }
+
+      this.commentDraft = '';
+      if (this.commentField) {
+        this.commentField.value = '';
+        this.resizeComment();
+      }
+
+      snackbar.show('Comment posted.', 'success');
+      void this.fetchComments(this.slug);
+    } catch (error) {
+      if (isAbortError(error) || controller.signal.aborted) {
+        return;
+      }
+
+      const unknown = error instanceof ApiError && error.status === 0;
+      const message = unknown
+        ? 'Could not confirm the comment was posted.'
+        : error instanceof ApiError
+          ? error.message
+          : 'Could not post the comment.';
+      snackbar.show(message, unknown ? 'warning' : 'error');
+    } finally {
+      if (this.commentController === controller) {
+        this.commentController = null;
+        this.setCommentPending(false);
+      }
+    }
+  }
 
   private onLikeClick(button: HTMLButtonElement): void {
     const liked = button.getAttribute('aria-pressed') === 'true';
@@ -763,6 +874,9 @@ export class GameDetailsDialog {
   private onDialogClose = (): void => {
     this.controller?.abort();
     this.commentsController?.abort();
+    this.commentController?.abort();
+    this.commentController = null;
+    this.commentPending = false;
     this.resetTransientState();
     this.emitDismiss();
   };
@@ -842,6 +956,19 @@ export class GameDetailsDialog {
     }
   }
 
+  private setCommentPending(pending: boolean): void {
+    this.commentPending = pending;
+    const signedIn = this.viewerEmail !== null;
+
+    if (this.commentField) {
+      this.commentField.disabled = pending || !signedIn;
+    }
+
+    if (this.commentSend) {
+      this.commentSend.disabled = pending || !signedIn;
+    }
+  }
+
   private resizeComment(): void {
     const field = this.commentField;
 
@@ -874,4 +1001,9 @@ export class GameDetailsDialog {
       }
     });
   }
+}
+
+function composerMark(name: string): string {
+  const character = name.trim().charAt(0);
+  return character ? character.toUpperCase() : '';
 }

@@ -404,6 +404,10 @@ dialog.details {
   font-size: $font-size-label;
   line-height: 1.5;
   resize: none;
+
+  &:disabled {
+    opacity: $opacity-muted;
+  }
 }
 
 .details__send {
@@ -426,11 +430,18 @@ dialog.details {
   }
 
   @include hover {
-    background-color: $color-primary-hover;
+    &:not(:disabled) {
+      background-color: $color-primary-hover;
+    }
   }
 
-  &:active {
+  &:not(:disabled):active {
     background-color: $color-primary-active;
+  }
+
+  &:disabled {
+    opacity: $opacity-muted;
+    cursor: default;
   }
 }
 

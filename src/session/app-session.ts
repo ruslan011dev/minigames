@@ -3,6 +3,8 @@ export const APP_SESSION_STORAGE_KEY = 'minigames:minigames-f07b2:app-session';
 export const APP_SESSION_LIFETIME_MS = 5 * 60 * 1000;
 
 const FALLBACK_PROFILE_NAME = 'Player';
+const COMMENT_AUTHOR_MIN = 2;
+const COMMENT_AUTHOR_MAX = 30;
 
 export interface AppSession {
   displayName: string;
@@ -31,6 +33,20 @@ export function profileLabel(displayName: string, email: string): string {
 
   const localPart = email.split('@')[0]?.trim() ?? '';
   if (localPart.length > 0) {
+    return localPart;
+  }
+
+  return FALLBACK_PROFILE_NAME;
+}
+
+export function commentAuthorName(displayName: string, email: string): string {
+  const name = displayName.trim();
+  if (name.length >= COMMENT_AUTHOR_MIN && name.length <= COMMENT_AUTHOR_MAX) {
+    return name;
+  }
+
+  const localPart = email.split('@')[0]?.trim() ?? '';
+  if (localPart.length >= COMMENT_AUTHOR_MIN && localPart.length <= COMMENT_AUTHOR_MAX) {
     return localPart;
   }
 
