@@ -53,6 +53,29 @@ export async function getGameComments(
   };
 }
 
+export type CommentLike = {
+  isLikedByCurrentUser: boolean;
+  likesCount: number;
+};
+
+export async function toggleCommentLike(
+  commentId: string,
+  userEmail: string,
+  signal?: AbortSignal,
+): Promise<CommentLike> {
+  const body = await apiPost(
+    `/api/comments/${encodeURIComponent(commentId)}/like`,
+    { userEmail },
+    signal,
+  );
+
+  if (!isRecord(body) || !isCommentLike(body.data)) {
+    throw new ApiError('Unexpected response from the server.', 0);
+  }
+
+  return body.data;
+}
+
 export async function postGameComment(
   slug: string,
   comment: { userEmail: string; authorName: string; text: string },
@@ -63,6 +86,14 @@ export async function postGameComment(
   if (!isRecord(body) || !isGameComment(body.data)) {
     throw new ApiError('Unexpected response from the server.', 0);
   }
+}
+
+function isCommentLike(value: unknown): value is CommentLike {
+  return (
+    isRecord(value) &&
+    typeof value.isLikedByCurrentUser === 'boolean' &&
+    typeof value.likesCount === 'number'
+  );
 }
 
 function isGameComment(value: unknown): value is GameComment {

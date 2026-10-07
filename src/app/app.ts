@@ -64,6 +64,7 @@ export class App {
       () => this.router.dismissDialog(),
       () => this.sessionForAction('Sign in to save favorites.'),
       () => this.sessionForAction('Sign in to write a comment.'),
+      () => this.sessionForAction('Sign in to like a comment.'),
     );
     this.header = new Header(
       (mode) => this.openAuth(mode),

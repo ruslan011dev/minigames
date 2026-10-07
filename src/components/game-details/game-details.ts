@@ -7,6 +7,7 @@ import {
   COMMENT_TEXT_MAX,
   getGameComments,
   postGameComment,
+  toggleCommentLike,
   type GameComment,
   type GameComments,
 } from '../../api/comments';
@@ -31,6 +32,7 @@ const SPECS = [
 
 const RECORD_MEDALS = ['🥇', '🥈', '🥉'] as const;
 const COMMENT_PLACEHOLDER = 'Write a comment...';
+const COMMENT_TONE_COUNT = 4;
 
 const FAVORITE_ADD = 'Add to Favorites';
 const FAVORITE_REMOVE = 'Remove from Favorites';
@@ -55,6 +57,8 @@ export class GameDetailsDialog {
   private commentController: AbortController | null = null;
   private profileName = '';
   private likeButtons: HTMLButtonElement[] = [];
+  private likePending = new Set<string>();
+  private commentTones = new Map<string, number>();
   private controller: AbortController | null = null;
   private commentsController: AbortController | null = null;
   private commentsTitle: HTMLElement | null = null;
@@ -70,6 +74,7 @@ export class GameDetailsDialog {
     private readonly onDismiss?: () => void,
     private readonly onRequestFavorite?: () => AppSession | null,
     private readonly onRequestComment?: () => AppSession | null,
+    private readonly onRequestLike?: () => AppSession | null,
   ) {}
 
   public render(): HTMLDialogElement {
@@ -499,6 +504,7 @@ export class GameDetailsDialog {
   };
 
   private createComments(): HTMLElement {
+    this.commentTones.clear();
     const section = document.createElement('section');
     section.className = 'details__comments';
     section.setAttribute('aria-labelledby', 'details-comments-title');
@@ -564,8 +570,8 @@ export class GameDetailsDialog {
     this.likeButtons = [];
     const list = document.createElement('ul');
     list.className = 'details__comment-list';
-    comments.comments.forEach((comment, index) => {
-      list.append(this.createComment(comment, index));
+    comments.comments.forEach((comment) => {
+      list.append(this.createComment(comment));
     });
     panel.replaceChildren(list);
   }
@@ -632,10 +638,22 @@ export class GameDetailsDialog {
     return composer;
   }
 
-  private createComment(comment: GameComment, index: number): HTMLLIElement {
+  private toneFor(author: string): number {
+    const name = author.trim();
+    const saved = this.commentTones.get(name);
+
+    if (saved) {
+      return saved;
+    }
+
+    const tone = Math.floor(Math.random() * COMMENT_TONE_COUNT) + 1;
+    this.commentTones.set(name, tone);
+    return tone;
+  }
+
+  private createComment(comment: GameComment): HTMLLIElement {
     const author = comment.authorName;
     const text = comment.text;
-    const likes = comment.likesCount;
     const createdAt = comment.createdAt;
     const item = document.createElement('li');
     const article = document.createElement('article');
@@ -645,9 +663,9 @@ export class GameDetailsDialog {
     head.className = 'details__comment-head';
 
     const avatar = document.createElement('span');
-    avatar.className = `details__avatar details__avatar--comment details__avatar--${index + 1}`;
+    avatar.className = `details__avatar details__avatar--comment details__avatar--tone-${this.toneFor(author)}`;
     avatar.setAttribute('aria-hidden', 'true');
-    avatar.textContent = author.slice(0, 1);
+    avatar.textContent = composerMark(author);
 
     const name = document.createElement('span');
     name.className = 'details__author';
@@ -664,19 +682,18 @@ export class GameDetailsDialog {
     body.className = 'details__comment-text';
     body.textContent = text;
 
-    article.append(head, body, this.createLike(author, likes));
+    article.append(head, body, this.createLike(comment));
     item.append(article);
 
     return item;
   }
 
-  private createLike(author: string, likes: number): HTMLButtonElement {
+  private createLike(comment: GameComment): HTMLButtonElement {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'details__like';
-    button.dataset.base = String(likes);
-    button.setAttribute('aria-pressed', 'false');
-    button.setAttribute('aria-label', `Like comment by ${author}`);
+    button.dataset.commentId = comment.commentId;
+    button.setAttribute('aria-label', `Like comment by ${comment.authorName}`);
 
     const icon = document.createElement('img');
     icon.src = heartUrl;
@@ -684,10 +701,16 @@ export class GameDetailsDialog {
 
     const count = document.createElement('span');
     count.className = 'details__like-count';
-    count.textContent = String(likes);
-
     button.append(icon, count);
-    button.addEventListener('click', () => this.onLikeClick(button));
+    this.setLikeState(button, comment.isLikedByCurrentUser, comment.likesCount);
+
+    if (this.likePending.has(comment.commentId)) {
+      this.setLikePending(button, true);
+    }
+
+    button.addEventListener('click', () => {
+      void this.onLikeClick(button);
+    });
     this.likeButtons.push(button);
 
     return button;
@@ -853,18 +876,89 @@ export class GameDetailsDialog {
     }
   }
 
-  private onLikeClick(button: HTMLButtonElement): void {
-    const liked = button.getAttribute('aria-pressed') === 'true';
-    const next = !liked;
-    const base = Number(button.dataset.base);
-    const count = button.querySelector('.details__like-count');
+  private async onLikeClick(button: HTMLButtonElement): Promise<void> {
+    const commentId = button.dataset.commentId;
 
-    button.setAttribute('aria-pressed', String(next));
-    button.classList.toggle('details__like--active', next);
-
-    if (count) {
-      count.textContent = String(base + (next ? 1 : 0));
+    if (!commentId || this.likePending.has(commentId)) {
+      return;
     }
+
+    const session = this.onRequestLike?.() ?? null;
+
+    if (!session) {
+      return;
+    }
+
+    const liked = button.getAttribute('aria-pressed') === 'true';
+    const count = Number(button.dataset.base ?? '0');
+    this.likePending.add(commentId);
+    this.setLikePending(button, true);
+
+    try {
+      const update = await toggleCommentLike(commentId, session.email);
+
+      if (!this.dialog?.open) {
+        return;
+      }
+
+      this.applyLike(commentId, update.isLikedByCurrentUser, update.likesCount);
+    } catch (error) {
+      if (isAbortError(error)) {
+        return;
+      }
+
+      this.applyLike(commentId, liked, count);
+      const unknown = error instanceof ApiError && error.status === 0;
+      const message = unknown
+        ? 'Could not confirm the like update.'
+        : error instanceof ApiError
+          ? error.message
+          : 'Could not update the like.';
+      snackbar.show(message, unknown ? 'warning' : 'error');
+    } finally {
+      this.likePending.delete(commentId);
+      const current =
+        this.likeButtons.find((item) => item.dataset.commentId === commentId) ?? button;
+      this.setLikePending(current, false);
+    }
+  }
+
+  private applyLike(commentId: string, liked: boolean, count: number): void {
+    const comment = this.comments?.comments.find((item) => item.commentId === commentId);
+
+    if (comment) {
+      comment.isLikedByCurrentUser = liked;
+      comment.likesCount = count;
+    }
+
+    const button = this.likeButtons.find((item) => item.dataset.commentId === commentId);
+
+    if (button?.isConnected) {
+      this.setLikeState(button, liked, count);
+    }
+  }
+
+  private setLikeState(button: HTMLButtonElement, liked: boolean, count: number): void {
+    button.dataset.base = String(count);
+    button.setAttribute('aria-pressed', String(liked));
+    button.classList.toggle('details__like--active', liked);
+    const countNode = button.querySelector('.details__like-count');
+
+    if (countNode && !this.likePending.has(button.dataset.commentId ?? '')) {
+      countNode.textContent = String(count);
+    }
+  }
+
+  private setLikePending(button: HTMLButtonElement, pending: boolean): void {
+    button.disabled = pending;
+    button.setAttribute('aria-busy', String(pending));
+    const countNode = button.querySelector('.details__like-count');
+
+    if (!countNode) {
+      return;
+    }
+
+    countNode.textContent = pending ? '...' : (button.dataset.base ?? '');
   }
 
   private onDialogCancel = (): void => {
@@ -877,6 +971,7 @@ export class GameDetailsDialog {
     this.commentController?.abort();
     this.commentController = null;
     this.commentPending = false;
+    this.likePending.clear();
     this.resetTransientState();
     this.emitDismiss();
   };
@@ -990,16 +1085,6 @@ export class GameDetailsDialog {
       this.commentField.value = '';
       this.commentField.style.height = '';
     }
-
-    this.likeButtons.forEach((button) => {
-      button.setAttribute('aria-pressed', 'false');
-      button.classList.remove('details__like--active');
-      const count = button.querySelector('.details__like-count');
-
-      if (count) {
-        count.textContent = button.dataset.base ?? '';
-      }
-    });
   }
 }
 
