@@ -248,7 +248,14 @@ dialog.details {
   }
 
   @include hover {
-    background-color: $color-bg;
+    &:not(:disabled) {
+      background-color: $color-bg;
+    }
+  }
+
+  &:disabled {
+    opacity: $opacity-muted;
+    cursor: default;
   }
 
   @include mobile-down {
@@ -262,7 +269,9 @@ dialog.details {
   background-color: $color-primary;
 
   @include hover {
-    background-color: $color-primary-hover;
+    &:not(:disabled) {
+      background-color: $color-primary-hover;
+    }
   }
 }
 
