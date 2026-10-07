@@ -377,16 +377,20 @@ dialog.details {
   font-size: $font-size-caption;
 }
 
-.details__avatar--1 {
+.details__avatar--tone-1 {
   background-color: $color-avatar-2;
 }
 
-.details__avatar--2 {
+.details__avatar--tone-2 {
   background-color: $color-avatar-3;
 }
 
-.details__avatar--3 {
+.details__avatar--tone-3 {
   background-color: $color-avatar-4;
+}
+
+.details__avatar--tone-4 {
+  background-color: $color-avatar-5;
 }
 
 .details__field {
@@ -504,6 +508,17 @@ dialog.details {
   img {
     width: $icon-size-xs;
     height: $icon-size-xs;
+  }
+
+  &--active {
+    padding: 0 $spacing-xs;
+    border-radius: $radius-sm;
+    background-color: $color-danger-surface;
+  }
+
+  &:disabled {
+    opacity: $opacity-muted;
+    cursor: default;
   }
 }
 
