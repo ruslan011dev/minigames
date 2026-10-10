@@ -53,6 +53,14 @@
   color: $color-white;
 }
 
+.auth__tab:disabled,
+.auth__google:disabled,
+.auth__link:disabled,
+.auth__toggle:disabled {
+  opacity: $opacity-muted;
+  cursor: default;
+}
+
 .auth__form {
   display: flex;
   flex-direction: column;
@@ -85,6 +93,22 @@
   display: flex;
   flex-direction: column;
   gap: $spacing-sm;
+}
+
+.auth__field--invalid .auth__control {
+  border-color: $color-danger;
+}
+
+.auth__error {
+  margin: 0;
+  color: $color-danger;
+  font-size: $font-size-caption;
+  font-weight: $font-weight-medium;
+  line-height: 1.2;
+
+  &[hidden] {
+    display: none;
+  }
 }
 
 .auth__label {
@@ -124,6 +148,10 @@
 
 .auth__input::placeholder {
   color: $color-on-bg;
+}
+
+.auth__input:disabled {
+  opacity: $opacity-muted;
 }
 
 .auth__toggle {
@@ -173,11 +201,19 @@
   transition: background-color $transition-fast;
 
   @include hover {
-    background-color: $color-primary-hover;
+    &:not(:disabled) {
+      background-color: $color-primary-hover;
+    }
   }
 
-  &:active {
+  &:not(:disabled):active {
     background-color: $color-primary-active;
+  }
+
+  &:disabled {
+    opacity: $opacity-muted;
+    box-shadow: none;
+    cursor: default;
   }
 }
 

@@ -46,6 +46,10 @@ public/          # static files (favicon, etc.)
 - `npm run lint` — eslint
 - `npm run format` — prettier
 
+## App session
+
+A signed-in session is stored in `localStorage` under `minigames:minigames-f07b2:app-session`. It lasts 5 minutes from sign-in and is separate from Firebase Authentication.
+
 ## Deployment
 
 Live site: [https://ruslan011dev.github.io/minigames/](https://ruslan011dev.github.io/minigames/)

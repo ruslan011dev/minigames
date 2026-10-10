@@ -1,4 +1,20 @@
 import { AuthDialog, type AuthMode } from '../components/auth/auth';
+import {
+  authenticateWithEmail,
+  AuthRequestError,
+  type EmailAuthRequest,
+  signOutPreservedUser,
+} from '../firebase/email-auth';
+import { signInWithGoogle } from '../firebase/google-auth';
+import {
+  clearAppSession,
+  profileLabel,
+  readAppSession,
+  saveAppSession,
+  type AppSession,
+  type SessionProfile,
+  type SessionRead,
+} from '../session/app-session';
 import { GameDetailsDialog } from '../components/game-details/game-details';
 import { Footer } from '../components/footer/footer';
 import { Header } from '../components/header/header';
@@ -21,6 +37,8 @@ export class App {
   private header: Header | null = null;
   private auth: AuthDialog | null = null;
   private details: GameDetailsDialog | null = null;
+  private startupSettled = false;
+  private shownAt: number | null = null;
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -39,9 +57,21 @@ export class App {
     this.auth = new AuthDialog(
       () => this.router.dismissDialog(),
       (mode) => this.openAuth(mode),
+      (request) => this.authenticate(request),
+      () => this.signInWithGoogleAccount(),
     );
-    this.details = new GameDetailsDialog(() => this.router.dismissDialog());
-    this.header = new Header((mode) => this.openAuth(mode));
+    this.details = new GameDetailsDialog(
+      () => this.router.dismissDialog(),
+      () => this.sessionForAction('Sign in to save favorites.'),
+      () => this.sessionForAction('Sign in to write a comment.'),
+      () => this.sessionForAction('Sign in to like a comment.'),
+    );
+    this.header = new Header(
+      (mode) => this.openAuth(mode),
+      () => {
+        void this.logout();
+      },
+    );
 
     const main = document.createElement('main');
     main.className = 'content';
@@ -64,8 +94,111 @@ export class App {
       snackbar.render(),
     );
     app.addEventListener('click', this.onLinkClick);
+    document.addEventListener('visibilitychange', this.onPageActive);
 
     return app;
+  }
+
+  private async authenticate(request: EmailAuthRequest): Promise<void> {
+    const profile = await authenticateWithEmail(request);
+    await this.keepSession(profile);
+    snackbar.show(request.mode === 'login' ? 'Signed in.' : 'Account created.', 'success');
+  }
+
+  private async signInWithGoogleAccount(): Promise<void> {
+    const profile = await signInWithGoogle();
+    await this.keepSession(profile);
+    snackbar.show('Signed in with Google.', 'success');
+  }
+
+  private async keepSession(profile: SessionProfile): Promise<void> {
+    try {
+      const session = saveAppSession(profile);
+      this.showSession(session);
+    } catch {
+      await signOutPreservedUser().catch(() => undefined);
+      throw new AuthRequestError('Could not save the session.');
+    }
+  }
+
+  private async logout(): Promise<void> {
+    clearAppSession();
+    this.showSession(null);
+
+    try {
+      await signOutPreservedUser();
+      snackbar.show('Signed out.', 'success');
+    } catch {
+      snackbar.show('Could not sign out of the account.', 'error');
+    }
+  }
+
+  private onPageActive = (): void => {
+    if (document.visibilityState !== 'visible') {
+      return;
+    }
+
+    this.enforceSession();
+  };
+
+  private enforceSession(): SessionRead {
+    const startup = !this.startupSettled;
+    this.startupSettled = true;
+    const result = readAppSession();
+
+    if (result.status === 'active') {
+      this.showSession(result.session);
+      return result;
+    }
+
+    if (result.status === 'expired') {
+      this.showSession(null);
+      snackbar.show('Your session has expired. Sign in again.', 'warning');
+    } else if (result.status === 'invalid') {
+      this.showSession(null);
+    }
+
+    if (startup || result.status === 'expired' || result.status === 'invalid') {
+      void signOutPreservedUser().catch(() => {
+        snackbar.show('Could not sign out of the account.', 'error');
+      });
+    }
+
+    return result;
+  }
+
+  private sessionForAction(guestMessage: string): AppSession | null {
+    const result = this.enforceSession();
+
+    if (result.status === 'active') {
+      return result.session;
+    }
+
+    this.openAuth('login');
+    snackbar.show(
+      result.status === 'expired' ? 'Your session has expired. Sign in again.' : guestMessage,
+      'warning',
+    );
+    return null;
+  }
+
+  private showSession(session: AppSession | null): void {
+    if (session === null) {
+      if (this.shownAt === null) {
+        return;
+      }
+
+      this.shownAt = null;
+      this.header?.setSession(null);
+      return;
+    }
+
+    if (this.shownAt === session.authenticatedAt) {
+      return;
+    }
+
+    this.shownAt = session.authenticatedAt;
+    this.header?.setSession(session);
   }
 
   private onLinkClick = (event: MouseEvent): void => {
@@ -104,6 +237,7 @@ export class App {
   };
 
   private openPage(pageId: PageId): void {
+    this.enforceSession();
     this.header?.dismissMenu();
     const current = this.router.current();
 
@@ -122,7 +256,14 @@ export class App {
   }
 
   private openAuth(mode: AuthMode): void {
+    this.enforceSession();
     this.header?.dismissMenu();
+
+    if (readAppSession().status === 'active') {
+      snackbar.show('You are already signed in.', 'info');
+      return;
+    }
+
     this.router.navigate({
       ...this.router.current(),
       dialog: { kind: 'auth', mode },
@@ -130,6 +271,7 @@ export class App {
   }
 
   private openGame(slug: string): void {
+    this.enforceSession();
     this.router.navigate({
       ...this.router.current(),
       dialog: { kind: 'game', slug },
@@ -137,6 +279,7 @@ export class App {
   }
 
   private onLibraryNavigate = (query: LibraryLocation): void => {
+    this.enforceSession();
     this.router.navigate({
       ...this.router.current(),
       page: 'library',
@@ -146,9 +289,21 @@ export class App {
     });
   };
 
-  private apply(location: AppLocation): void {
-    this.syncPage(location);
-    this.syncDialog(location);
+  private apply(location: AppLocation): AppLocation {
+    this.enforceSession();
+    const next = this.allowAuth(location);
+    this.syncPage(next);
+    this.syncDialog(next);
+    return next;
+  }
+
+  private allowAuth(location: AppLocation): AppLocation {
+    if (location.dialog.kind !== 'auth' || readAppSession().status !== 'active') {
+      return location;
+    }
+
+    snackbar.show('You are already signed in.', 'info');
+    return { ...location, dialog: { kind: 'none' } };
   }
 
   private syncPage(location: AppLocation): void {
@@ -223,7 +378,13 @@ export class App {
   private syncDialog(location: AppLocation): void {
     if (location.dialog.kind === 'game') {
       this.auth?.dismiss();
-      this.details?.open(location.dialog.slug);
+      const session = readAppSession();
+      const email = session.status === 'active' ? session.session.email : null;
+      const name =
+        session.status === 'active'
+          ? profileLabel(session.session.displayName, session.session.email)
+          : '';
+      this.details?.open(location.dialog.slug, email, name);
       return;
     }
 
