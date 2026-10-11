@@ -41,6 +41,34 @@ export async function apiGet(
   return response.json() as Promise<unknown>;
 }
 
+export async function apiPost(path: string, body: unknown, signal?: AbortSignal): Promise<unknown> {
+  let response: Response;
+
+  try {
+    response = await fetch(apiUrl(path), {
+      method: 'POST',
+      signal,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (error) {
+    if (isAbortError(error)) {
+      throw error;
+    }
+
+    throw new ApiError('Network error. Check your connection and try again.', 0);
+  }
+
+  if (!response.ok) {
+    throw new ApiError(await readErrorMessage(response), response.status);
+  }
+
+  return response.json() as Promise<unknown>;
+}
+
 function apiUrl(path: string, query?: Record<string, string>): string {
   const url = new URL(path, API_ORIGIN);
 

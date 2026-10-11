@@ -1,4 +1,5 @@
 import './style.scss';
+import './firebase/firebase';
 import { App } from './app/app';
 
 const root = document.querySelector<HTMLElement>('#app');

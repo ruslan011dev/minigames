@@ -1,6 +1,7 @@
-import { ApiError, apiGet, isRecord } from './client';
+import { ApiError, apiGet, apiPost, isRecord } from './client';
 
 const COMMENTS_LIMIT = 3;
+export const COMMENT_TEXT_MAX = 500;
 
 export type GameComment = {
   commentId: string;
@@ -16,12 +17,21 @@ export type GameComments = {
   totalComments: number;
 };
 
-export async function getGameComments(slug: string, signal?: AbortSignal): Promise<GameComments> {
-  const body = await apiGet(
-    `/api/games/${encodeURIComponent(slug)}/comments`,
-    { limit: String(COMMENTS_LIMIT), sort: 'newest' },
-    signal,
-  );
+export async function getGameComments(
+  slug: string,
+  signal?: AbortSignal,
+  userEmail?: string,
+): Promise<GameComments> {
+  const query: Record<string, string> = {
+    limit: String(COMMENTS_LIMIT),
+    sort: 'newest',
+  };
+
+  if (userEmail) {
+    query.userEmail = userEmail;
+  }
+
+  const body = await apiGet(`/api/games/${encodeURIComponent(slug)}/comments`, query, signal);
 
   if (!isRecord(body) || !Array.isArray(body.data) || !isRecord(body.meta)) {
     throw new ApiError('Unexpected response from the server.', 0);
@@ -41,6 +51,49 @@ export async function getGameComments(slug: string, signal?: AbortSignal): Promi
     }),
     totalComments: body.meta.totalComments,
   };
+}
+
+export type CommentLike = {
+  isLikedByCurrentUser: boolean;
+  likesCount: number;
+};
+
+export async function toggleCommentLike(
+  commentId: string,
+  userEmail: string,
+  signal?: AbortSignal,
+): Promise<CommentLike> {
+  const body = await apiPost(
+    `/api/comments/${encodeURIComponent(commentId)}/like`,
+    { userEmail },
+    signal,
+  );
+
+  if (!isRecord(body) || !isCommentLike(body.data)) {
+    throw new ApiError('Unexpected response from the server.', 0);
+  }
+
+  return body.data;
+}
+
+export async function postGameComment(
+  slug: string,
+  comment: { userEmail: string; authorName: string; text: string },
+  signal?: AbortSignal,
+): Promise<void> {
+  const body = await apiPost(`/api/games/${encodeURIComponent(slug)}/comments`, comment, signal);
+
+  if (!isRecord(body) || !isGameComment(body.data)) {
+    throw new ApiError('Unexpected response from the server.', 0);
+  }
+}
+
+function isCommentLike(value: unknown): value is CommentLike {
+  return (
+    isRecord(value) &&
+    typeof value.isLikedByCurrentUser === 'boolean' &&
+    typeof value.likesCount === 'number'
+  );
 }
 
 function isGameComment(value: unknown): value is GameComment {
