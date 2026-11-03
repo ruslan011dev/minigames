@@ -248,7 +248,14 @@ dialog.details {
   }
 
   @include hover {
-    background-color: $color-bg;
+    &:not(:disabled) {
+      background-color: $color-bg;
+    }
+  }
+
+  &:disabled {
+    opacity: $opacity-muted;
+    cursor: default;
   }
 
   @include mobile-down {
@@ -262,7 +269,9 @@ dialog.details {
   background-color: $color-primary;
 
   @include hover {
-    background-color: $color-primary-hover;
+    &:not(:disabled) {
+      background-color: $color-primary-hover;
+    }
   }
 }
 
@@ -368,16 +377,20 @@ dialog.details {
   font-size: $font-size-caption;
 }
 
-.details__avatar--1 {
+.details__avatar--tone-1 {
   background-color: $color-avatar-2;
 }
 
-.details__avatar--2 {
+.details__avatar--tone-2 {
   background-color: $color-avatar-3;
 }
 
-.details__avatar--3 {
+.details__avatar--tone-3 {
   background-color: $color-avatar-4;
+}
+
+.details__avatar--tone-4 {
+  background-color: $color-avatar-5;
 }
 
 .details__field {
@@ -395,6 +408,10 @@ dialog.details {
   font-size: $font-size-label;
   line-height: 1.5;
   resize: none;
+
+  &:disabled {
+    opacity: $opacity-muted;
+  }
 }
 
 .details__send {
@@ -417,11 +434,18 @@ dialog.details {
   }
 
   @include hover {
-    background-color: $color-primary-hover;
+    &:not(:disabled) {
+      background-color: $color-primary-hover;
+    }
   }
 
-  &:active {
+  &:not(:disabled):active {
     background-color: $color-primary-active;
+  }
+
+  &:disabled {
+    opacity: $opacity-muted;
+    cursor: default;
   }
 }
 
@@ -484,6 +508,17 @@ dialog.details {
   img {
     width: $icon-size-xs;
     height: $icon-size-xs;
+  }
+
+  &--active {
+    padding: 0 $spacing-xs;
+    border-radius: $radius-sm;
+    background-color: $color-danger-surface;
+  }
+
+  &:disabled {
+    opacity: $opacity-muted;
+    cursor: default;
   }
 }
 

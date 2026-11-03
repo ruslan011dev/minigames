@@ -1,6 +1,9 @@
 import burgerUrl from '../../assets/icons/burger.svg?url';
 import closeUrl from '../../assets/icons/close.svg?url';
 import logoUrl from '../../assets/icons/logo.png';
+import personUrl from '../../assets/icons/person.svg?url';
+import type { AppSession } from '../../session/app-session';
+import { profileInitials, profileLabel } from '../../session/app-session';
 import type { PageId } from '../../types/page';
 import type { AuthMode } from '../auth/auth';
 
@@ -19,12 +22,28 @@ const NAV_ITEMS: NavItem[] = [
 
 const TABLET_MAX_WIDTH = 768;
 
+interface ProfileAvatar {
+  root: HTMLSpanElement;
+  image: HTMLImageElement;
+  initials: HTMLElement;
+  icon: HTMLImageElement;
+}
+
 export class Header {
   private root: HTMLElement | null = null;
   private burger: HTMLButtonElement | null = null;
   private menu: HTMLDialogElement | null = null;
+  private headerUser: HTMLElement | null = null;
+  private headerName: HTMLElement | null = null;
+  private headerAvatar: ProfileAvatar | null = null;
+  private menuUser: HTMLElement | null = null;
+  private menuName: HTMLElement | null = null;
+  private menuAvatar: ProfileAvatar | null = null;
 
-  constructor(private readonly onOpenAuth: (mode: AuthMode) => void) {}
+  constructor(
+    private readonly onOpenAuth: (mode: AuthMode) => void,
+    private readonly onLogout?: () => void,
+  ) {}
 
   public render(): HTMLElement {
     const header = document.createElement('header');
@@ -55,6 +74,39 @@ export class Header {
 
   public dismissMenu(): void {
     this.closeMenu();
+  }
+
+  public setSession(session: AppSession | null): void {
+    const signedIn = session !== null;
+    const label = session ? profileLabel(session.displayName, session.email) : '';
+
+    this.root?.querySelectorAll<HTMLElement>('[data-guest]').forEach((control) => {
+      control.hidden = signedIn;
+    });
+
+    if (this.headerUser) {
+      this.headerUser.hidden = !signedIn;
+    }
+
+    if (this.menuUser) {
+      this.menuUser.hidden = !signedIn;
+    }
+
+    if (this.headerName) {
+      this.headerName.textContent = label;
+    }
+
+    if (this.menuName) {
+      this.menuName.textContent = label;
+    }
+
+    const avatarUrl = session?.avatarUrl;
+    if (this.headerAvatar) {
+      this.paintAvatar(this.headerAvatar, label, avatarUrl);
+    }
+    if (this.menuAvatar) {
+      this.paintAvatar(this.menuAvatar, label, avatarUrl);
+    }
   }
 
   private createLogo(): HTMLAnchorElement {
@@ -119,6 +171,10 @@ export class Header {
 
     const logIn = this.createAuthButton('Log In', 'header__btn header__btn--outline', 'login');
     const signUp = this.createAuthButton('Sign Up', 'header__btn header__btn--primary', 'register');
+    const user = this.createUserBlock('header');
+    this.headerUser = user.root;
+    this.headerName = user.name;
+    this.headerAvatar = user.avatar;
 
     this.burger = document.createElement('button');
     this.burger.type = 'button';
@@ -134,7 +190,7 @@ export class Header {
     burgerIcon.height = 32;
 
     this.burger.append(burgerIcon);
-    actions.append(logIn, signUp, this.burger);
+    actions.append(logIn, signUp, user.root, this.burger);
 
     return actions;
   }
@@ -144,6 +200,7 @@ export class Header {
     button.type = 'button';
     button.className = className;
     button.dataset.auth = mode;
+    button.dataset.guest = 'true';
     button.textContent = label;
     button.addEventListener('click', () => {
       this.closeMenu();
@@ -178,14 +235,117 @@ export class Header {
 
     const actions = document.createElement('div');
     actions.className = 'menu__actions';
+    const user = this.createUserBlock('menu');
+    this.menuUser = user.root;
+    this.menuName = user.name;
+    this.menuAvatar = user.avatar;
     actions.append(
       this.createAuthButton('Log In', 'header__btn header__btn--outline menu__btn', 'login'),
       this.createAuthButton('Sign Up', 'header__btn header__btn--primary menu__btn', 'register'),
+      user.root,
     );
 
     menu.append(top, nav, actions);
 
     return menu;
+  }
+
+  private createUserBlock(place: 'header' | 'menu'): {
+    root: HTMLDivElement;
+    name: HTMLElement;
+    avatar: ProfileAvatar;
+  } {
+    const root = document.createElement('div');
+    root.className = place === 'header' ? 'header__user' : 'menu__user';
+    root.hidden = true;
+
+    const identity = document.createElement('div');
+    identity.className = 'header__identity';
+
+    const avatar = this.createAvatar();
+    const name = document.createElement(place === 'header' ? 'span' : 'p');
+    name.className = place === 'header' ? 'header__name' : 'menu__name';
+    identity.append(avatar.root, name);
+
+    const logout = document.createElement('button');
+    logout.type = 'button';
+    logout.className =
+      place === 'header'
+        ? 'header__btn header__logout'
+        : 'header__btn header__btn--outline menu__btn';
+    logout.textContent = 'Log out';
+    logout.addEventListener('click', () => {
+      this.closeMenu();
+      this.onLogout?.();
+    });
+
+    root.append(identity, logout);
+
+    return { root, name, avatar };
+  }
+
+  private createAvatar(): ProfileAvatar {
+    const root = document.createElement('span');
+    root.className = 'header__avatar';
+    root.setAttribute('aria-hidden', 'true');
+
+    const image = document.createElement('img');
+    image.className = 'header__avatar-image';
+    image.alt = '';
+    image.hidden = true;
+
+    const initials = document.createElement('span');
+    initials.className = 'header__avatar-initials';
+    initials.hidden = true;
+
+    const icon = document.createElement('img');
+    icon.className = 'header__avatar-icon';
+    icon.src = personUrl;
+    icon.alt = '';
+    icon.hidden = true;
+
+    image.addEventListener('load', () => {
+      if (!image.dataset.expected) {
+        return;
+      }
+
+      image.hidden = false;
+      initials.hidden = true;
+      icon.hidden = true;
+    });
+    image.addEventListener('error', () => {
+      if (!image.dataset.expected) {
+        return;
+      }
+
+      image.hidden = true;
+      this.showAvatarMark(initials, icon);
+    });
+
+    root.append(image, initials, icon);
+
+    return { root, image, initials, icon };
+  }
+
+  private paintAvatar(avatar: ProfileAvatar, label: string, avatarUrl: string | undefined): void {
+    const initials = profileInitials(label);
+    avatar.initials.textContent = initials;
+    avatar.image.dataset.expected = avatarUrl ?? '';
+    avatar.image.hidden = true;
+    this.showAvatarMark(avatar.initials, avatar.icon);
+
+    if (!avatarUrl) {
+      avatar.image.removeAttribute('src');
+      return;
+    }
+
+    avatar.image.src = avatarUrl;
+  }
+
+  private showAvatarMark(initials: HTMLElement, icon: HTMLImageElement): void {
+    const hasInitials = (initials.textContent ?? '').length > 0;
+    initials.hidden = !hasInitials;
+    icon.hidden = hasInitials;
   }
 
   private createCloseButton(): HTMLButtonElement {
